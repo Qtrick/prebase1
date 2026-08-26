@@ -46,11 +46,13 @@ function Segmented({ state }: { state: GraphState }) {
 export function IdeFrame({
   state,
   animateIn = false,
+  dense = false,
   className = "",
   children,
 }: {
   state: GraphState;
   animateIn?: boolean;
+  dense?: boolean;
   className?: string;
   children?: ReactNode;
 }) {
@@ -122,7 +124,7 @@ export function IdeFrame({
 
         <div className="flex min-h-[300px] sm:min-h-[380px] lg:min-h-[440px]">
           {/* explorer */}
-          <aside className="hidden w-44 shrink-0 border-r border-border bg-surface-1/80 py-3 md:block lg:w-52">
+          <aside className={"hidden w-44 shrink-0 border-r border-border bg-surface-1/80 py-3 lg:w-52 " + (dense ? "xl:block" : "md:block")}>
             <p className="px-3 pb-2 text-[10px] tracking-[0.14em] text-muted-foreground">
               PREBASE MAPS
             </p>
@@ -158,7 +160,7 @@ export function IdeFrame({
             <GraphCanvas
               state={state}
               animateIn={animateIn}
-              className="h-[240px] w-full sm:h-[320px] lg:h-[380px]"
+              className={"w-full " + (dense ? "h-[300px] lg:h-[400px]" : "h-[240px] sm:h-[320px] lg:h-[380px]")}
             />
             <div className="flex items-center justify-between border-t border-border px-3 py-1.5 font-mono text-[10px] text-muted-foreground">
               <span>18 nodes · 20 edges</span>
@@ -169,7 +171,7 @@ export function IdeFrame({
           </div>
 
           {/* agents panel */}
-          <aside className="hidden w-52 shrink-0 border-l border-border bg-surface-1/80 p-3 lg:block">
+          <aside className={"hidden w-52 shrink-0 border-l border-border bg-surface-1/80 p-3 " + (dense ? "xl:block" : "lg:block")}>
             <p className="pb-3 text-[10px] tracking-[0.14em] text-muted-foreground">AGENTS</p>
             <div className="space-y-2 text-[11px]">
               <div className="flex gap-1 text-[10px]">

@@ -33,7 +33,7 @@ function Index() {
       />
       <Navbar />
       <main>
-        <h1 className="sr-only">PreBase — the codebase mapping IDE</h1>
+        
         <Hero />
         <ProductStory />
         <IdeStrip />

@@ -258,50 +258,6 @@ export function ScrollStory() {
           </motion.span>
         </motion.div>
 
-        {/* chapter rail, desktop only */}
-        <nav
-          aria-label="Story progress"
-          className="absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-2 xl:flex"
-        >
-          {(["network", "temporal"] as Group[]).map((g) => (
-            <div key={g} className="flex flex-col gap-2">
-              <span
-                className={
-                  "mt-2 font-mono text-[9px] tracking-[0.22em] transition-colors duration-300 " +
-                  (group === g ? "text-foreground/70" : "text-muted-foreground/30")
-                }
-              >
-                {g.toUpperCase()}
-              </span>
-              {CHAPTERS.map((c, i) =>
-                c.group !== g ? null : (
-                  <button
-                    key={c.n}
-                    type="button"
-                    onClick={() => scrollToChapter(i)}
-                    aria-current={chapter === i ? "step" : undefined}
-                    className={
-                      "group flex cursor-pointer items-center gap-2 rounded-sm py-0.5 pl-1 pr-1 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 hover:text-teal focus-visible:text-teal motion-reduce:transition-none " +
-                      (chapter === i ? "text-teal" : "text-muted-foreground/40")
-                    }
-                  >
-                    <span
-                      className={
-                        "inline-block h-px transition-all duration-300 group-hover:w-5 group-hover:bg-teal group-focus-visible:w-5 group-focus-visible:bg-teal motion-reduce:transition-none " +
-                        (chapter === i ? "w-4 bg-teal" : "w-2 bg-muted-foreground/30")
-                      }
-                    />
-                    <span className="transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none">
-                      {c.n} {c.nav.toUpperCase()}
-                    </span>
-                  </button>
-
-                ),
-              )}
-            </div>
-          ))}
-        </nav>
-
       </div>
     </section>
   );

@@ -4,6 +4,7 @@ import { Hero } from "@/components/Hero";
 import { ScrollStory } from "@/components/ScrollStory";
 import { Playground } from "@/components/Playground";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { ProductJourneyRail } from "@/components/ProductJourneyRail";
 import { IdeStory } from "@/components/IdeStory";
 import { Waitlist } from "@/components/Waitlist";
 import { Footer } from "@/components/Footer";
@@ -31,10 +32,11 @@ function Index() {
     <div className="relative min-h-screen [overflow-x:clip]">
       <div
         aria-hidden="true"
-        className="pb-grid pb-mask-fade pointer-events-none fixed inset-0 -z-10 opacity-70"
+        className="pb-grid pb-mask-fade pointer-events-none fixed inset-0 -z-10 opacity-40"
       />
       <ScrollProgress />
       <Navbar />
+      <ProductJourneyRail />
       <main>
         <Hero />
         <ScrollStory />

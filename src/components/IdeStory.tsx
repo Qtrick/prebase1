@@ -1,57 +1,58 @@
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { PRODUCT_JOURNEY, WORKBENCH_BOUNDS, scrollToStep } from "@/lib/journey";
 
 /**
- * "Still an IDE." — the second, calmer scroll story.
+ * "Still an IDE." — the workbench story.
  *
- * One sticky IDE surface. Scroll owns the active capability: the tab strip is a
- * read-only status indicator, exactly like the guided Network/Temporal switch.
- * Runtime Preview gets extra scroll distance because it contains two sub-stages
- * (Web Runtime, then a managed Electron desktop session).
+ * One sticky workbench shell. Scroll owns the active capability; the tab strip
+ * navigates by scrolling to a chapter's real story position, so the tab state
+ * is always derived from scroll rather than set independently.
  */
 
 type Cap = "Editor" | "Terminal" | "Source Control" | "Runtime Preview" | "Extensions";
 
-const CAPS: Array<{ n: string; cap: Cap; nav: string; title: string; body: string }> = [
+const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: string }> = [
   {
-    n: "01",
+    n: "07",
     cap: "Editor",
-    nav: "Editor",
-    title: "Write code without leaving the map.",
-    body: "Edit files in the same Code-OSS-based workspace where PreBase already understands their relationships.",
+    title: "Move from the map into the code.",
+    body: "Open a node from the Code Graph and work in the corresponding file without leaving the workspace. The structural context that helped you find the code stays part of the same PreBase session.",
+    meta: "Code-OSS editor · graph-to-file navigation",
   },
   {
-    n: "02",
+    n: "08",
     cap: "Terminal",
-    nav: "Terminal",
-    title: "Run the project where you work.",
-    body: "Use the integrated terminal and project tasks without leaving the workspace.",
+    title: "Run what you're building.",
+    body: "Use the integrated terminal for development servers, tests, build commands, and project tasks while the rest of the workspace stays in context.",
+    meta: "Integrated shell · project tasks · test output",
   },
   {
-    n: "03",
+    n: "09",
     cap: "Source Control",
-    nav: "Source Control",
-    title: "See the change before you ship it.",
-    body: "Review files, diffs, and source-control state inside the same workspace.",
+    title: "Review the change in context.",
+    body: "Inspect modified files and diffs without leaving the environment where PreBase already understands the surrounding system.",
+    meta: "Git state · file diffs · repository context",
   },
   {
-    n: "04",
+    n: "10",
     cap: "Runtime Preview",
-    nav: "Runtime",
-    title: "Test beyond the browser.",
-    body: "Runtime Preview runs local web applications, and PreBase can also launch and inspect supported Electron desktop applications so Agents verify the running renderer instead of relying only on terminal output.",
+    title: "Test what actually runs.",
+    body: "Preview supported local web applications directly in the workspace and inspect responsive states without switching to another tool.",
+    meta: "Web runtime · Electron runtime · Agent evidence",
   },
   {
-    n: "05",
+    n: "11",
     cap: "Extensions",
-    nav: "Extensions",
-    title: "Keep the tools you already use.",
-    body: "PreBase keeps the Code-OSS extension model, so familiar development tooling stays part of the workspace.",
+    title: "Keep the tools around the workflow.",
+    body: "PreBase is built on the Code-OSS workbench, so familiar development extensions remain part of the environment instead of forcing a separate toolchain.",
+    meta: "Code-OSS extension model",
   },
 ];
 
 const CAP_LIST: Cap[] = CAPS.map((c) => c.cap);
-const BOUNDS = [0, 0.16, 0.32, 0.48, 0.78, 1];
+const BOUNDS = WORKBENCH_BOUNDS;
+const WORKBENCH_STEPS = PRODUCT_JOURNEY.filter((s) => s.section === "why");
 /** inside the Runtime chapter, where the web preview hands over to desktop */
 const DESKTOP_START = 0.62;
 
@@ -86,22 +87,26 @@ export function IdeStory() {
     <section
       id="why"
       ref={ref}
-      className="relative mt-24 h-[300vh] border-t border-border sm:mt-32 lg:h-[360vh]"
+      className="relative mt-28 h-[300vh] sm:mt-36 lg:h-[360vh]"
     >
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
-        <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-          <header className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 xl:pl-[176px]">
+          <header className="flex flex-col gap-4 pb-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div className="min-w-0">
-              <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-medium">Still an IDE.</h2>
-              <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
-                PreBase is built on the Code-OSS workbench, so the map lives inside the same
-                environment where you edit, run, test, debug, and ship.
+              <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">
+                THE WORKBENCH
+              </span>
+              <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Still an IDE.</h2>
+              <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
+                PreBase is built on the Code-OSS workbench. The map isn&apos;t a companion window or
+                a separate analysis tool — it lives inside the environment where you edit code, run
+                the project, review changes, test applications, and work with agents.
               </p>
             </div>
             <CapabilityStrip active={active.cap} />
           </header>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-8">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-10">
             {/* sticky IDE surface */}
             <div className="order-2 h-[42svh] min-h-[260px] overflow-hidden rounded-xl border border-border bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)] sm:h-[48svh] lg:order-1 lg:h-[min(56vh,470px)]">
               <div className="flex h-full min-h-0 flex-col">
@@ -145,67 +150,46 @@ export function IdeStory() {
                   exit={{ opacity: 0, y: reduce ? 0 : -10 }}
                   transition={fade}
                 >
-                  <span className="font-mono text-[11px] tracking-[0.18em] text-teal">
+                  <span className="font-mono text-[11px] tracking-[0.2em] text-teal">
                     {active.n} · {active.cap.toUpperCase()}
                     {chapter === 3 && (desktop ? " · DESKTOP" : " · WEB")}
                   </span>
-                  <h3 className="mt-2 text-lg font-medium sm:text-xl">
+                  <h3 className="mt-3 text-[clamp(1.35rem,2.1vw,1.85rem)] font-medium leading-[1.15]">
                     {chapter === 3
                       ? desktop
-                        ? "Test the desktop application itself."
-                        : "Preview local web apps."
+                        ? "Verify the desktop application itself."
+                        : "Test what actually runs."
                       : active.title}
                   </h3>
-                  <p className="mt-2 max-w-md text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="mt-3 max-w-[420px] text-[15px] leading-[1.6] text-muted-foreground">
                     {chapter === 3
                       ? desktop
-                        ? "For supported Electron projects, PreBase can open a managed desktop session and give Agents runtime evidence from the application itself — renderer inspection, screenshots, process output, reload and restart."
-                        : "Run your local application inside the IDE, reload it, and inspect responsive states without leaving PreBase."
+                        ? "For supported Electron projects, PreBase can also launch a managed desktop runtime so Agents can inspect the renderer, capture screenshots, read process output, and verify the running application itself."
+                        : active.body
                       : active.body}
+                  </p>
+                  <p className="mt-4 font-mono text-[11px] leading-[1.5] text-muted-foreground/60">
+                    {active.meta}
                   </p>
                 </motion.div>
               </AnimatePresence>
             </div>
           </div>
         </div>
-
-        {/* chapter rail, large screens only */}
-        <nav
-          aria-label="IDE story progress"
-          className="pointer-events-none absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-2 xl:flex"
-        >
-          {CAPS.map((c, i) => (
-            <span
-              key={c.n}
-              aria-current={chapter === i ? "step" : undefined}
-              className={
-                "flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 " +
-                (chapter === i ? "text-teal" : "text-muted-foreground/40")
-              }
-            >
-              <span
-                className={
-                  "inline-block h-px transition-all duration-300 " +
-                  (chapter === i ? "w-4 bg-teal" : "w-2 bg-muted-foreground/30")
-                }
-              />
-              {c.n} {c.nav.toUpperCase()}
-            </span>
-          ))}
-        </nav>
       </div>
     </section>
   );
 }
 
-/** Read-only status indicator — scroll owns this state, so it is not a control. */
+/**
+ * Navigation, not state: a click scrolls to the chapter's real story position
+ * and the active tab is then derived from scroll like everything else.
+ */
 function CapabilityStrip({ active }: { active: Cap }) {
   const reduce = useReducedMotion();
   const wrap = useRef<HTMLDivElement>(null);
-  const activeRef = useRef<HTMLSpanElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
 
-  // Keep the current capability visible when the strip scrolls horizontally on
-  // narrow screens. Scroll still owns the state; this only follows it.
   useEffect(() => {
     const el = activeRef.current;
     const box = wrap.current;
@@ -217,32 +201,33 @@ function CapabilityStrip({ active }: { active: Cap }) {
   }, [active, reduce]);
 
   return (
-    <div
+    <nav
       ref={wrap}
-      role="status"
-      aria-live="polite"
-      aria-label={`Current IDE capability: ${active}`}
-      className="-mx-5 flex shrink-0 cursor-default select-none gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+      aria-label="Workbench capabilities"
+      className="-mx-5 flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
     >
-      {CAP_LIST.map((c) => {
+      {CAP_LIST.map((c, i) => {
         const on = c === active;
+        const step = WORKBENCH_STEPS[i]!;
         return (
-          <span
+          <button
             key={c}
             ref={on ? activeRef : undefined}
-            aria-hidden="true"
+            type="button"
+            aria-current={on ? "step" : undefined}
+            onClick={() => scrollToStep(step, Boolean(reduce))}
             className={
-              "relative shrink-0 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors duration-300 " +
+              "relative min-h-11 shrink-0 cursor-pointer rounded-md border px-3 py-2 font-mono text-[11px] transition-colors duration-200 " +
               (on
                 ? "border-teal/40 bg-teal/10 text-teal"
-                : "border-border bg-surface-2/50 text-muted-foreground/60")
+                : "border-border bg-surface-2/40 text-muted-foreground hover:border-border-strong hover:text-foreground")
             }
           >
             {c}
-          </span>
+          </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
@@ -474,7 +459,7 @@ function MiniApp() {
   return (
     <div className="flex h-full flex-col overflow-hidden p-2.5 text-foreground">
       <div className="flex items-center justify-between border-b border-border/70 pb-1.5">
-        <span className="text-[11px] font-medium">Project Atlas</span>
+        <span className="text-[11px] font-medium">demo-app</span>
         <nav className="flex gap-2 text-[9px] text-muted-foreground">
           <span className="text-teal">Overview</span>
           <span>Activity</span>
@@ -554,7 +539,7 @@ function DesktopRuntime({ step }: { step: number }) {
               <span className="size-2 rounded-full bg-danger/70" />
               <span className="size-2 rounded-full bg-warning/70" />
               <span className="size-2 rounded-full bg-success/70" />
-              <span className="mx-auto truncate text-[10px] text-foreground/80">Atlas Desktop</span>
+              <span className="mx-auto truncate text-[10px] text-foreground/80">demo-app · desktop</span>
             </div>
             <div className="grid min-h-0 flex-1 grid-cols-[64px_minmax(0,1fr)]">
               <nav className="min-h-0 space-y-1 border-r border-border p-1.5 text-[9px] text-muted-foreground">

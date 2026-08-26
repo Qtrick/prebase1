@@ -43,12 +43,16 @@ export function Playground() {
   const counts = diffCounts(commit);
 
   return (
-    <section id="explore" className="relative mt-24 sm:mt-32">
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+    <section id="explore" className="relative mt-20 scroll-mt-24 sm:mt-24">
+      <div className="mx-auto max-w-[1240px] px-5 sm:px-8 xl:pl-[176px]">
         <Reveal>
-          <h2 className="text-[clamp(1.6rem,3vw,2.15rem)] font-medium">Explore the map.</h2>
-          <p className="mt-2 max-w-md text-muted-foreground">
-            Try a simplified PreBase model — select a node, change the layout, move through history.
+          <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">
+            EXPLORE
+          </span>
+          <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Explore the map.</h2>
+          <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
+            The guided story shows how PreBase works. Here, take control: change the layout, inspect
+            relationships, move through history, and hand graph context to an Agent.
           </p>
         </Reveal>
 

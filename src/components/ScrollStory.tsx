@@ -16,6 +16,7 @@ import {
   TemporalToolbar,
 } from "@/components/ide/TemporalControls";
 import { COMMITS, VIEW, contextFor, diffCounts, type LayoutMode } from "@/lib/demo-graph";
+import { STORY_BOUNDS } from "@/lib/journey";
 
 /**
  * The guided story is a single state machine driven exclusively by scroll.
@@ -68,7 +69,7 @@ const CHAPTERS: Array<{
   },
 ];
 
-const BOUNDS = [0, 0.19, 0.38, 0.57, 0.8, 1];
+const BOUNDS = STORY_BOUNDS;
 /** The single Network → Temporal boundary. */
 const TEMPORAL_START = BOUNDS[3]!;
 
@@ -104,6 +105,16 @@ export function ScrollStory() {
   const reveal = useTransform(p, [0.01, 0.15], [0, 1]);
   const cueOpacity = useTransform(p, [0, 0.02, 0.055], [1, 1, 0]);
 
+  // Scroll-linked product entrance: the frame resolves as the section enters
+  // the viewport and recedes again on the way back up. Reversible by design.
+  const { scrollYProgress: entry } = useScroll({
+    target: ref,
+    offset: ["start end", "start 15%"],
+  });
+  const entryOpacity = useTransform(entry, [0.25, 0.85], [0, 1]);
+  const entryY = useTransform(entry, [0.25, 0.9], [reduce ? 0 : 24, 0]);
+  const entryScale = useTransform(entry, [0.25, 0.9], [reduce ? 1 : 0.985, 1]);
+
   const camSpring = reduce ? { duration: 0.001 } : { stiffness: 80, damping: 22, mass: 0.5 };
   const cameraZoom = useSpring(useTransform(p, KEY_P, KEY_ZOOM), camSpring);
   const cameraX = useSpring(useTransform(p, KEY_P, KEY_X), camSpring);
@@ -132,16 +143,6 @@ export function ScrollStory() {
     });
   });
 
-  const scrollToChapter = (i: number) => {
-    const el = ref.current;
-    if (!el) return;
-    const target = Math.min((BOUNDS[i] ?? 0) + 0.035, 0.99);
-    const range = el.offsetHeight - window.innerHeight;
-    window.scrollTo({
-      top: el.offsetTop + range * target,
-      behavior: reduce ? "auto" : "smooth",
-    });
-  };
 
   /* ---- single source of truth ------------------------------------- */
 
@@ -170,9 +171,12 @@ export function ScrollStory() {
   return (
     <section id="product" ref={ref} className="relative mt-16 h-[520vh] sm:mt-20 lg:h-[620vh]">
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
-        <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center lg:gap-8">
+        <div className="mx-auto grid w-full max-w-[1240px] gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-10 xl:pl-[176px]">
           {/* product canvas */}
-          <div className="order-2 h-[44svh] min-h-[280px] sm:h-[52svh] lg:order-1 lg:h-[min(64vh,560px)]">
+          <motion.div
+            style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}
+            className="order-2 h-[58svh] min-h-[360px] sm:h-[56svh] lg:order-1 lg:h-[min(64vh,560px)]"
+          >
             <IdeFrame
               className="h-full"
               mode={mode}
@@ -219,7 +223,7 @@ export function ScrollStory() {
                 labelAll={false}
               />
             </IdeFrame>
-          </div>
+          </motion.div>
 
           {/* chapter copy */}
           <div className="relative order-1 h-[150px] sm:h-[164px] lg:order-2 lg:h-[320px]">
@@ -256,50 +260,6 @@ export function ScrollStory() {
             ⌄
           </motion.span>
         </motion.div>
-
-        {/* chapter rail, desktop only */}
-        <nav
-          aria-label="Story progress"
-          className="absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-2 xl:flex"
-        >
-          {(["network", "temporal"] as Group[]).map((g) => (
-            <div key={g} className="flex flex-col gap-2">
-              <span
-                className={
-                  "mt-2 font-mono text-[9px] tracking-[0.22em] transition-colors duration-300 " +
-                  (group === g ? "text-foreground/70" : "text-muted-foreground/30")
-                }
-              >
-                {g.toUpperCase()}
-              </span>
-              {CHAPTERS.map((c, i) =>
-                c.group !== g ? null : (
-                  <button
-                    key={c.n}
-                    type="button"
-                    onClick={() => scrollToChapter(i)}
-                    aria-current={chapter === i ? "step" : undefined}
-                    className={
-                      "group flex cursor-pointer items-center gap-2 rounded-sm py-0.5 pl-1 pr-1 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 hover:text-teal focus-visible:text-teal motion-reduce:transition-none " +
-                      (chapter === i ? "text-teal" : "text-muted-foreground/40")
-                    }
-                  >
-                    <span
-                      className={
-                        "inline-block h-px transition-all duration-300 group-hover:w-5 group-hover:bg-teal group-focus-visible:w-5 group-focus-visible:bg-teal motion-reduce:transition-none " +
-                        (chapter === i ? "w-4 bg-teal" : "w-2 bg-muted-foreground/30")
-                      }
-                    />
-                    <span className="transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none">
-                      {c.n} {c.nav.toUpperCase()}
-                    </span>
-                  </button>
-
-                ),
-              )}
-            </div>
-          ))}
-        </nav>
 
       </div>
     </section>

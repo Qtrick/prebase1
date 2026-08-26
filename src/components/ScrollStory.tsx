@@ -233,7 +233,7 @@ export function ScrollStory() {
                 labelAll={false}
               />
             </IdeFrame>
-          </div>
+          </motion.div>
 
           {/* chapter copy */}
           <div className="relative order-1 h-[150px] sm:h-[164px] lg:order-2 lg:h-[320px]">

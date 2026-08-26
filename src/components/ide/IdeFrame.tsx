@@ -75,6 +75,7 @@ export function IdeFrame({
   onSelectFile,
   showExplorer = true,
   explorerDim = 0,
+  agentsWide = false,
   agents,
   toolbar,
   timeline,
@@ -95,6 +96,7 @@ export function IdeFrame({
   showExplorer?: boolean;
   /** 0..1 — how much the explorer recedes as the graph takes over */
   explorerDim?: number;
+  agentsWide?: boolean;
   agents?: ReactNode;
   toolbar?: ReactNode;
   timeline?: ReactNode;
@@ -242,7 +244,7 @@ export function IdeFrame({
 
           {/* agents panel */}
           {agents && (
-            <aside className="hidden w-56 shrink-0 overflow-y-auto border-l border-border bg-surface-1/80 p-3 lg:block">
+            <aside className={"hidden w-56 shrink-0 overflow-y-auto border-l border-border bg-surface-1/80 p-3 " + (agentsWide ? "2xl:block" : "lg:block")}>
               {agents}
             </aside>
           )}

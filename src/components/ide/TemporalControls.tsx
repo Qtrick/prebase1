@@ -153,11 +153,11 @@ export function TemporalTimeline({
       </div>
       {interactive && (
         <div className="px-3 pb-2">
-          <label htmlFor="pb-scrub" className="sr-only">
+          <label htmlFor={scrubId} className="sr-only">
             Scrub through commit history
           </label>
           <input
-            id="pb-scrub"
+            id={scrubId}
             type="range"
             min={0}
             max={COMMITS.length - 1}

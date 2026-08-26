@@ -105,6 +105,16 @@ export function ScrollStory() {
   const reveal = useTransform(p, [0.01, 0.15], [0, 1]);
   const cueOpacity = useTransform(p, [0, 0.02, 0.055], [1, 1, 0]);
 
+  // Scroll-linked product entrance: the frame resolves as the section enters
+  // the viewport and recedes again on the way back up. Reversible by design.
+  const { scrollYProgress: entry } = useScroll({
+    target: ref,
+    offset: ["start end", "start 15%"],
+  });
+  const entryOpacity = useTransform(entry, [0.25, 0.85], [0, 1]);
+  const entryY = useTransform(entry, [0.25, 0.9], [reduce ? 0 : 24, 0]);
+  const entryScale = useTransform(entry, [0.25, 0.9], [reduce ? 1 : 0.985, 1]);
+
   const camSpring = reduce ? { duration: 0.001 } : { stiffness: 80, damping: 22, mass: 0.5 };
   const cameraZoom = useSpring(useTransform(p, KEY_P, KEY_ZOOM), camSpring);
   const cameraX = useSpring(useTransform(p, KEY_P, KEY_X), camSpring);

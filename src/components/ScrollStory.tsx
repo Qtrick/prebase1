@@ -79,7 +79,7 @@ const TEMPORAL_START = BOUNDS[3]!;
 
 const KEY_P = [0, 0.1, 0.28, 0.38, 0.47, 0.57, 0.68, 0.9, 1];
 /** Zoom out through the Context chapter so the Agents panel never covers nodes. */
-const KEY_ZOOM = [1, 1, 1, 0.78, 0.78, 0.78, 1, 1, 1];
+const KEY_ZOOM = [1, 1, 1, 0.78, 0.78, 0.85, 1.24, 1.28, 1.28];
 const KEY_FX = [400, 400, 400, 400, 400, 400, 400, 400, 400];
 const KEY_FY = [226, 226, 226, 226, 226, 226, 226, 226, 226];
 /** extra left bias so the Agents panel has breathing room in the Context chapter */

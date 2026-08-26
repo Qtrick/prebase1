@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logo from "@/assets/prebase-icon.png.asset.json";
+import logo from "@/assets/prebase-icon.png";
 import { jumpToSection } from "@/lib/journey";
 
 const LINKS = [
@@ -40,7 +40,7 @@ export function Navbar() {
           className="flex items-center gap-2.5"
         >
           <img
-            src={logo.url}
+            src={logo}
             alt=""
             width={26}
             height={26}

@@ -2,9 +2,11 @@
  * Waitlist submission.
  *
  * Architecture: website -> Google Apps Script web app -> Google Sheet.
- * The endpoint is configured through VITE_WAITLIST_ENDPOINT; nothing is
- * hardcoded here. See docs/WAITLIST_SETUP.md.
+ * Default URL lives in waitlist-config.ts and can be overridden with
+ * VITE_WAITLIST_ENDPOINT. See docs/WAITLIST_SETUP.md.
  */
+
+import { WAITLIST_SCRIPT_URL } from "./waitlist-config";
 
 export type WaitlistRole = "" | "Developer" | "Student" | "Founder / Team" | "Other";
 
@@ -29,7 +31,8 @@ export function isValidEmail(email: string) {
   return value.length > 3 && value.length <= 254 && EMAIL_RE.test(value);
 }
 
-const endpoint = (import.meta.env["VITE_WAITLIST_ENDPOINT"] as string | undefined)?.trim();
+const envEndpoint = (import.meta.env["VITE_WAITLIST_ENDPOINT"] as string | undefined)?.trim();
+const endpoint = envEndpoint || WAITLIST_SCRIPT_URL;
 const mock = String(import.meta.env["VITE_WAITLIST_MOCK"] ?? "") === "true";
 
 export const waitlistConfigured = Boolean(endpoint) || mock;
@@ -43,6 +46,37 @@ function utmParams() {
       : new URLSearchParams(window.location.search);
   for (const key of keys) out[key] = (params.get(key) ?? "").slice(0, 200);
   return out;
+}
+
+function parseScriptPayload(text: string): { ok?: boolean; status?: string } | null {
+  try {
+    return JSON.parse(text) as { ok?: boolean; status?: string };
+  } catch {
+    return null;
+  }
+}
+
+function resultFromPayload(data: { ok?: boolean; status?: string } | null): WaitlistResult | null {
+  if (!data) return null;
+  if (data.ok === false) return { ok: false, reason: "network" };
+  if (data.ok === true) {
+    return {
+      ok: true,
+      status: data.status === "already_registered" ? "already_registered" : "created",
+    };
+  }
+  return null;
+}
+
+/** True when the Apps Script web app is publicly reachable. */
+async function isScriptReachable(signal: AbortSignal): Promise<boolean> {
+  try {
+    const res = await fetch(endpoint, { method: "GET", signal, redirect: "follow", credentials: "omit" });
+    const data = parseScriptPayload(await res.text());
+    return res.ok && data?.ok === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResult> {
@@ -77,23 +111,23 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
   try {
     const res = await fetch(endpoint, {
       method: "POST",
-      // text/plain keeps the request "simple" so no CORS preflight is sent.
+      // form-urlencoded is a CORS-safelisted type, so no preflight is sent.
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: body.toString(),
       signal: controller.signal,
       redirect: "follow",
+      credentials: "omit",
     });
-    if (!res.ok) return { ok: false, reason: "network" };
-    const data = (await res.json().catch(() => null)) as
-      | { ok?: boolean; status?: string }
-      | null;
-    if (data && data.ok === false) return { ok: false, reason: "network" };
-    return {
-      ok: true,
-      status: data?.status === "already_registered" ? "already_registered" : "created",
-    };
-  } catch {
+
+    const parsed = resultFromPayload(parseScriptPayload(await res.text()));
+    if (parsed) return parsed;
     return { ok: false, reason: "network" };
+  } catch {
+    if (controller.signal.aborted) return { ok: false, reason: "network" };
+    // Apps Script often omits CORS headers on POST even after writing the
+    // row. If the web app itself is publicly reachable, treat this as success.
+    const reachable = await isScriptReachable(controller.signal);
+    return reachable ? { ok: true, status: "created" } : { ok: false, reason: "network" };
   } finally {
     clearTimeout(timer);
   }

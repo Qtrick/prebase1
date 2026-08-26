@@ -29,13 +29,20 @@ submission, so no manual sheet setup is needed.
 
 ## 3. Point the website at it
 
-Set the environment variable (see `.env.example`):
+The live `/exec` URL is set in two places so signups work without extra dashboard config:
+
+1. `src/lib/waitlist-config.ts` — `WAITLIST_SCRIPT_URL` (the default)
+2. `.env` / `.env.example` — `VITE_WAITLIST_ENDPOINT` (overrides the default when present)
+
+Current endpoint:
 
 ```
-VITE_WAITLIST_ENDPOINT=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
+https://script.google.com/macros/s/AKfycbz34OMfhhqx3DLrEJbbhYI5ho0gQTY3dponed6sSkp6_r1MWwDwOZ-NSHogzDHyZ8g2/exec
 ```
 
-Then redeploy / republish the website so the value is baked into the build.
+If you create a **new** deployment (a different `/exec` URL), update both of those files and republish.
+
+**Access:** the web app must allow unauthenticated POST from the public site. In the deployment, set **Who has access: Anyone**. "Only myself" or "Anyone with a Google account" returns Access Denied and signups will fail.
 
 ## 4. Test
 
@@ -52,7 +59,7 @@ Apps Script web apps are versioned. After editing the code:
 
 **Deploy → Manage deployments → (pencil icon) → Version: New version → Deploy.**
 
-This keeps the same `/exec` URL, so `VITE_WAITLIST_ENDPOINT` does not change.
+This keeps the same `/exec` URL, so `WAITLIST_SCRIPT_URL` and `VITE_WAITLIST_ENDPOINT` do not change.
 Creating a *new deployment* instead would give you a different URL.
 
 ## Local development

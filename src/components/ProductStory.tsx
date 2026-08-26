@@ -127,7 +127,7 @@ function MobileStep({
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => entry.isIntersecting && setVisible(true),
+      (entries) => entries.some((e) => e.isIntersecting) && setVisible(true),
       { rootMargin: "-15% 0px -15% 0px" },
     );
     observer.observe(el);

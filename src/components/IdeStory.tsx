@@ -87,22 +87,26 @@ export function IdeStory() {
     <section
       id="why"
       ref={ref}
-      className="relative mt-24 h-[300vh] border-t border-border sm:mt-32 lg:h-[360vh]"
+      className="relative mt-28 h-[300vh] sm:mt-36 lg:h-[360vh]"
     >
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
-        <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-          <header className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-8 xl:pl-[168px]">
+          <header className="flex flex-col gap-4 pb-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div className="min-w-0">
-              <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-medium">Still an IDE.</h2>
-              <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
-                PreBase is built on the Code-OSS workbench, so the map lives inside the same
-                environment where you edit, run, test, debug, and ship.
+              <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">
+                THE WORKBENCH
+              </span>
+              <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Still an IDE.</h2>
+              <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
+                PreBase is built on the Code-OSS workbench. The map isn&apos;t a companion window or
+                a separate analysis tool — it lives inside the environment where you edit code, run
+                the project, review changes, test applications, and work with agents.
               </p>
             </div>
             <CapabilityStrip active={active.cap} />
           </header>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-8">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-10">
             {/* sticky IDE surface */}
             <div className="order-2 h-[42svh] min-h-[260px] overflow-hidden rounded-xl border border-border bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)] sm:h-[48svh] lg:order-1 lg:h-[min(56vh,470px)]">
               <div className="flex h-full min-h-0 flex-col">

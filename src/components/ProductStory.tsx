@@ -59,8 +59,10 @@ export function ProductStory() {
 
         {/* Desktop: sticky visual + scrolling copy */}
         <div className="mt-12 hidden gap-14 lg:grid lg:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="sticky top-24 h-fit">
-            <IdeFrame state={active} />
+          <div className="relative">
+            <div className="sticky top-24">
+              <IdeFrame state={active} />
+            </div>
           </div>
           <div>
             {STEPS.map((step, i) => (

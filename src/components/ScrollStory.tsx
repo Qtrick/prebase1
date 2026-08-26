@@ -194,7 +194,7 @@ function ChapterCopy({
   return (
     <motion.div
       style={{ opacity, y }}
-      className="absolute inset-x-0 top-1/2 -translate-y-1/2"
+      className="absolute inset-0 flex flex-col justify-center"
       aria-hidden={false}
     >
       <span className="font-mono text-[11px] tracking-[0.18em] text-teal">{chapter.n}</span>

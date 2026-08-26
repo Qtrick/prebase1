@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * "Still an IDE." — the second, calmer scroll story.
@@ -200,18 +200,36 @@ export function IdeStory() {
 
 /** Read-only status indicator — scroll owns this state, so it is not a control. */
 function CapabilityStrip({ active }: { active: Cap }) {
+  const reduce = useReducedMotion();
+  const wrap = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLSpanElement>(null);
+
+  // Keep the current capability visible when the strip scrolls horizontally on
+  // narrow screens. Scroll still owns the state; this only follows it.
+  useEffect(() => {
+    const el = activeRef.current;
+    const box = wrap.current;
+    if (!el || !box || box.scrollWidth <= box.clientWidth) return;
+    box.scrollTo({
+      left: el.offsetLeft - box.clientWidth / 2 + el.offsetWidth / 2,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [active, reduce]);
+
   return (
     <div
+      ref={wrap}
       role="status"
       aria-live="polite"
       aria-label={`Current IDE capability: ${active}`}
-      className="-mx-5 flex shrink-0 cursor-default select-none gap-1.5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+      className="-mx-5 flex shrink-0 cursor-default select-none gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
     >
       {CAP_LIST.map((c) => {
         const on = c === active;
         return (
           <span
             key={c}
+            ref={on ? activeRef : undefined}
             aria-hidden="true"
             className={
               "relative shrink-0 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors duration-300 " +
@@ -227,6 +245,7 @@ function CapabilityStrip({ active }: { active: Cap }) {
     </div>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Panes                                                               */

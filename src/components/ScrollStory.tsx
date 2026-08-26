@@ -200,7 +200,7 @@ export function ScrollStory() {
               hovered={hovered}
               onHoverFile={setHovered}
               onSelectFile={(id) => setUserSelected(id)}
-              agents={chapter >= 2 ? agentPanel : undefined}
+              agents={agentPanel}
               agentsOpen={agentOn}
               toolbar={<TemporalToolbar commit={commit} focusChanges={focusChanges} visible={temporal} />}
               timeline={

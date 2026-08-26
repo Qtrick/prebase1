@@ -163,10 +163,11 @@ export function ScrollStory() {
   const group: Group = CHAPTERS[chapter]!.group;
   const mode: GraphMode = group === "temporal" ? "temporal" : "network";
   const temporal = mode === "temporal";
-  // Spatial continuity: the layout is settled well before Temporal begins and
-  // never changes again, so nodes stay exactly where the visitor last saw them.
-  const layout: LayoutMode = chapter === 0 ? "organic" : "constellation";
+  // Spatial continuity: one settled layout for the whole guided story, so nodes
+  // never re-flow mid-scroll and stay exactly where the visitor last saw them.
+  const layout: LayoutMode = "constellation";
   const agentOn = chapter === 2;
+
 
   const selected = userSelected ?? (agentOn ? "graph" : null);
   const context = agentOn && selected ? contextFor(selected) : null;

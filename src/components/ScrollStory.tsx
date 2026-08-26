@@ -171,7 +171,7 @@ export function ScrollStory() {
   return (
     <section id="product" ref={ref} className="relative mt-16 h-[520vh] sm:mt-20 lg:h-[620vh]">
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
-        <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center lg:gap-8">
+        <div className="mx-auto grid w-full max-w-[1120px] gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-10 xl:pl-[168px]">
           {/* product canvas */}
           <motion.div
             style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}

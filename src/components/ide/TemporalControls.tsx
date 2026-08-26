@@ -91,7 +91,8 @@ export function TemporalTimeline({
   return (
     <motion.div
       initial={false}
-      animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 16, height: visible ? "auto" : 0 }}
+      animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 16 }}
+      style={{ display: visible ? "block" : "none" }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="shrink-0 overflow-hidden border-t border-border bg-surface-1/90"
     >

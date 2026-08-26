@@ -124,7 +124,7 @@ export function IdeFrame({
 
         <div className="flex min-h-[300px] sm:min-h-[380px] lg:min-h-[440px]">
           {/* explorer */}
-          <aside className={"hidden w-44 shrink-0 border-r border-border bg-surface-1/80 py-3 lg:w-52 " + (dense ? "xl:block" : "md:block")}>
+          <aside className={"hidden w-44 shrink-0 border-r border-border bg-surface-1/80 py-3 lg:w-52 " + (dense ? "" : "md:block")}>
             <p className="px-3 pb-2 text-[10px] tracking-[0.14em] text-muted-foreground">
               PREBASE MAPS
             </p>
@@ -171,7 +171,7 @@ export function IdeFrame({
           </div>
 
           {/* agents panel */}
-          <aside className={"hidden w-52 shrink-0 border-l border-border bg-surface-1/80 p-3 " + (dense ? "xl:block" : "lg:block")}>
+          <aside className={"hidden w-52 shrink-0 border-l border-border bg-surface-1/80 p-3 " + (dense ? "2xl:block" : "lg:block")}>
             <p className="pb-3 text-[10px] tracking-[0.14em] text-muted-foreground">AGENTS</p>
             <div className="space-y-2 text-[11px]">
               <div className="flex gap-1 text-[10px]">

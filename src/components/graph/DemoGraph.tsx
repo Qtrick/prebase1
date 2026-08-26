@@ -325,9 +325,10 @@ export function DemoGraph({
       onPointerUp={onBgPointerUp}
       onPointerCancel={onBgPointerUp}
       style={{
-        cursor: interactive ? (panning ? "grabbing" : "grab") : undefined,
-        touchAction: interactive ? "pan-y" : undefined,
+        cursor: full ? (panning ? "grabbing" : "grab") : undefined,
+        touchAction: "pan-y",
       }}
+
     >
       <defs>
         <radialGradient id="pb-halo" cx="50%" cy="50%" r="50%">

@@ -74,6 +74,39 @@ function Badge({ tone, children }: { tone: string; children: React.ReactNode }) 
   return <span className={"rounded border px-1.5 py-0.5 " + color}>{children}</span>;
 }
 
+/** Compact inline explanation of the temporal node states. */
+export function TemporalLegend({ visible = true }: { visible?: boolean }) {
+  const items: Array<{ label: string; color: string }> = [
+    { label: "Added", color: "var(--success)" },
+    { label: "Modified", color: "var(--warning)" },
+    { label: "Removed", color: "var(--danger)" },
+    { label: "Renamed", color: "var(--info)" },
+    { label: "Unchanged", color: "oklch(0.58 0 0)" },
+  ];
+  return (
+    <motion.div
+      initial={false}
+      animate={{ opacity: visible ? 1 : 0 }}
+      style={{ display: visible ? "block" : "none" }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="shrink-0 border-t border-border bg-surface-1/60 px-3 py-1.5"
+    >
+      <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] text-muted-foreground">
+        {items.map((i) => (
+          <li key={i.label} className="flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="inline-block size-1.5 rounded-full"
+              style={{ background: i.color }}
+            />
+            {i.label}
+          </li>
+        ))}
+      </ul>
+    </motion.div>
+  );
+}
+
 export function TemporalTimeline({
   commit,
   onCommit,

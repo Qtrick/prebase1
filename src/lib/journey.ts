@@ -74,10 +74,30 @@ export function stepTargetY(step: JourneyStep): number | null {
  * every intermediate chapter of the story, which reads as noise when the
  * visitor has already asked to be somewhere specific.
  */
+export const JOURNEY_JUMP_EVENT = "journey:jump";
+
 export function scrollToStep(step: JourneyStep, _reduce = false) {
   const y = stepTargetY(step);
   if (y == null) return;
   window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
+  // Stories run their scroll progress through springs; without this the spring
+  // eases across every chapter in between, which is exactly the "scrolling
+  // through" the jump is meant to avoid.
+  window.dispatchEvent(new CustomEvent(JOURNEY_JUMP_EVENT));
+}
+
+/** Snap motion values to their current target after a journey jump. */
+export function useJourneyJump(snap: () => void) {
+  const ref = useRef(snap);
+  ref.current = snap;
+  useEffect(() => {
+    const handler = () => {
+      // let the browser commit the new scroll position first
+      requestAnimationFrame(() => requestAnimationFrame(() => ref.current()));
+    };
+    window.addEventListener(JOURNEY_JUMP_EVENT, handler);
+    return () => window.removeEventListener(JOURNEY_JUMP_EVENT, handler);
+  }, []);
 }
 
 export function chapterFromProgress(v: number, bounds: readonly number[], max: number) {

@@ -174,3 +174,15 @@
     transform: translateX(120%);
   }
 }
+
+/* Streaming insertion cursor for the Agents chat demo. */
+@keyframes pb-caret-blink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+.pb-caret {
+  animation: pb-caret-blink 1s steps(1, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-caret { animation: none; }
+}

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { NODE_BY_ID } from "@/lib/demo-graph";
 import {
   AGENT_MODES,
@@ -34,6 +34,7 @@ export function AgentsPanel({
   chat?: boolean;
 }) {
   const reduce = useReducedMotion();
+  const inputId = `pb-agent-input-${useId()}`;
   const [mode, setMode] = useState<AgentMode>("Ask");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -252,11 +253,11 @@ export function AgentsPanel({
               }}
               className="flex shrink-0 items-end gap-1.5 rounded-md border border-border bg-surface-2 p-1.5"
             >
-              <label className="sr-only" htmlFor="pb-agent-input">
+              <label className="sr-only" htmlFor={inputId}>
                 Message the agent
               </label>
               <textarea
-                id="pb-agent-input"
+                id={inputId}
                 ref={taRef}
                 rows={1}
                 value={draft}

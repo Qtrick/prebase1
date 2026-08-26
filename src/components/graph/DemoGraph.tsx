@@ -361,6 +361,8 @@ export function DemoGraph({
         {/* soft focus halo behind the active node */}
         {active && (
           <motion.circle
+            cx={posOf(active).x}
+            cy={posOf(active).y}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, cx: posOf(active).x, cy: posOf(active).y }}
             transition={{ duration: reduce ? 0 : 0.4 }}

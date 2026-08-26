@@ -107,7 +107,11 @@ export function ScrollStory() {
               mode={mode}
               explorerDim={explorerDimValue(chapter)}
               selected={agentOn ? "graph" : null}
-              agents={<AgentsPanel contextIds={context} selected={agentOn ? "graph" : null} active={agentOn} compact />}
+              agents={
+                chapter >= 3 ? (
+                  <AgentsPanel contextIds={context} selected={agentOn ? "graph" : null} active={agentOn} compact />
+                ) : undefined
+              }
               toolbar={<TemporalToolbar commit={commit} focusChanges={focusChanges} visible={temporal} />}
               timeline={<TemporalTimeline commit={commit} visible={temporal} />}
               statusLeft={`22 nodes · 23 edges`}
@@ -179,13 +183,13 @@ function ChapterCopy({
 }) {
   const start = BOUNDS[index]!;
   const end = BOUNDS[index + 1]!;
-  const pad = 0.05;
+  const pad = 0.045;
   const opacity = useTransform(
     progress,
-    [start - pad, start + pad, end - pad, end + pad],
+    [start - pad, start + pad * 0.4, end - pad, end - pad * 0.4],
     [0, 1, 1, 0],
   );
-  const y = useTransform(progress, [start - pad, end + pad], [18, -18]);
+  const y = useTransform(progress, [start - pad, end], [16, -16]);
 
   return (
     <motion.div

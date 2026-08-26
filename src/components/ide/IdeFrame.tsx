@@ -174,9 +174,11 @@ export function IdeFrame({
         <div className="flex min-h-0 flex-1">
           {/* explorer */}
           {showExplorer && (
-            <aside
-              style={{ opacity: 1 - explorerDim * 0.72 }}
-              className="hidden w-44 shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 transition-opacity duration-200 md:block lg:w-52"
+            <motion.aside
+              initial={false}
+              animate={{ opacity: 1 - explorerDim * 0.85, width: explorerDim > 0.5 ? 0 : 208 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="hidden shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 md:block"
             >
               <p className="px-3 pb-2 text-[10px] tracking-[0.14em] text-muted-foreground">
                 PREBASE MAPS
@@ -218,7 +220,7 @@ export function IdeFrame({
                   );
                 })}
               </ul>
-            </aside>
+            </motion.aside>
           )}
 
           {/* graph workspace */}

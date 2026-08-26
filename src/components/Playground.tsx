@@ -54,6 +54,7 @@ export function Playground() {
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_290px] lg:items-stretch">
           <IdeFrame
+            agentsWide
             mode={mode}
             onModeChange={(m) => {
               setMode(m);

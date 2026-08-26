@@ -78,17 +78,26 @@ const TEMPORAL_START = BOUNDS[3]!;
 /* ------------------------------------------------------------------ */
 
 const KEY_P = [0, 0.1, 0.28, 0.38, 0.47, 0.57, 0.68, 0.9, 1];
-const KEY_ZOOM = [1, 1, 1, 1, 1, 1, 1, 1, 1];
+/** Zoom out through the Context chapter so the Agents panel never covers nodes. */
+const KEY_ZOOM = [1, 1, 1, 0.86, 0.86, 0.86, 1, 1, 1];
 const KEY_FX = [400, 400, 400, 400, 400, 400, 400, 400, 400];
 const KEY_FY = [226, 226, 226, 226, 226, 226, 226, 226, 226];
 /** extra left bias so the Agents panel has breathing room in the Context chapter */
-const KEY_BIAS = [0, 0, 0, -34, -46, -12, 0, 0, 0];
+const KEY_BIAS = [0, 0, 0, -96, -104, -96, 0, 0, 0];
 
-
-const KEY_X = KEY_FX.map((fx, i) => (VIEW.cx - fx) * KEY_ZOOM[i]! + KEY_BIAS[i]!);
-const KEY_Y = KEY_FY.map((fy, i) => (VIEW.cy - fy) * KEY_ZOOM[i]!);
+/** Hard camera bounds — nodes can never drift toward or past the canvas edge. */
+const MAX_PAN_X = 130;
+const MAX_PAN_Y = 70;
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+const KEY_X = KEY_FX.map((fx, i) =>
+  clamp((VIEW.cx - fx) * KEY_ZOOM[i]! + KEY_BIAS[i]!, -MAX_PAN_X, MAX_PAN_X),
+);
+const KEY_Y = KEY_FY.map((fy, i) =>
+  clamp((VIEW.cy - fy) * KEY_ZOOM[i]!, -MAX_PAN_Y, MAX_PAN_Y),
+);
+
 
 export function ScrollStory() {
   const reduce = useReducedMotion();

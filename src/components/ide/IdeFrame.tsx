@@ -109,6 +109,7 @@ export function IdeFrame({
   showExplorer = true,
   explorerDim = 0,
   agentsWide = false,
+  agentsOpen = true,
   agents,
   toolbar,
   timeline,
@@ -130,6 +131,7 @@ export function IdeFrame({
   /** 0..1 — how much the explorer recedes as the graph takes over */
   explorerDim?: number;
   agentsWide?: boolean;
+  agentsOpen?: boolean;
   agents?: ReactNode;
   toolbar?: ReactNode;
   timeline?: ReactNode;

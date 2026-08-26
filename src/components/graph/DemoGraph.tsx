@@ -269,7 +269,7 @@ export function DemoGraph({
   }
 
   function onBgPointerDown(e: React.PointerEvent<SVGSVGElement>) {
-    if (!interactive || dragRef.current) return;
+    if (!full || dragRef.current) return;
     if ((e.target as Element).closest("[data-node]")) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     panState.current = {

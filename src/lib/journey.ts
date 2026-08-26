@@ -197,12 +197,12 @@ export function useJourneyPosition(): JourneyPosition {
       const visible = y + vh * 0.6 >= pTop && y + vh * 0.55 < wlTop;
 
       let index = -1;
-      if (y + vh * 0.5 >= wTop) {
+      if (y + vh * 0.5 >= eTop) {
+        index = 10;
+      } else if (y + vh * 0.5 >= wTop) {
         const range = Math.max(1, why.offsetHeight - vh);
         const v = Math.min(1, Math.max(0, (y - wTop) / range));
-        index = 6 + chapterFromProgress(v, WORKBENCH_BOUNDS, 4);
-      } else if (y + vh * 0.5 >= eTop) {
-        index = 5;
+        index = 5 + chapterFromProgress(v, WORKBENCH_BOUNDS, 4);
       } else if (y + vh * 0.5 >= pTop) {
         const range = Math.max(1, product.offsetHeight - vh);
         const v = Math.min(1, Math.max(0, (y - pTop) / range));

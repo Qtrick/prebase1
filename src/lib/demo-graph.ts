@@ -206,11 +206,11 @@ function constellation(): Record<string, Pos> {
 /** Distinct architecture groupings. */
 function clustered(): Record<string, Pos> {
   const centers: Record<Category, { x: number; y: number }> = {
-    app: { x: 400, y: 92 },
-    auth: { x: 158, y: 190 },
-    graph: { x: 372, y: 300 },
-    api: { x: 646, y: 168 },
-    runtime: { x: 654, y: 356 },
+    app: { x: 396, y: 78 },
+    auth: { x: 138, y: 186 },
+    graph: { x: 360, y: 296 },
+    api: { x: 660, y: 152 },
+    runtime: { x: 668, y: 366 },
   };
   const out: Record<string, Pos> = {};
   const groups: Record<string, DemoNode[]> = {};
@@ -226,8 +226,8 @@ function clustered(): Record<string, Pos> {
       const count = ring === 1 ? Math.min(list.length - 1, 5) : list.length - 6;
       const idx = ring === 1 ? i - 1 : i - 6;
       const a = (idx / Math.max(1, count)) * Math.PI * 2 - Math.PI / 2;
-      const rad = ring === 1 ? 56 : 96;
-      out[n.id] = { x: c.x + Math.cos(a) * rad, y: c.y + Math.sin(a) * rad * 0.82, depth: 1 };
+      const rad = ring === 1 ? 68 : 112;
+      out[n.id] = { x: c.x + Math.cos(a) * rad, y: c.y + Math.sin(a) * rad * 0.86, depth: 1 };
     });
   }
   return out;

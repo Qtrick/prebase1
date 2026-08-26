@@ -101,7 +101,7 @@ export function ScrollStory() {
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
         <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_270px] lg:items-center lg:gap-8">
           {/* product canvas */}
-          <div className="order-2 min-h-0 lg:order-1 lg:h-[min(64vh,560px)]">
+          <div className="order-2 h-[48svh] min-h-[300px] sm:h-[54svh] lg:order-1 lg:h-[min(64vh,560px)]">
             <IdeFrame
               className="h-full"
               mode={mode}
@@ -139,7 +139,7 @@ export function ScrollStory() {
           </div>
 
           {/* chapter copy */}
-          <div className="relative order-1 lg:order-2 lg:h-[300px]">
+          <div className="relative order-1 h-[150px] sm:h-[160px] lg:order-2 lg:h-[300px]">
             {CHAPTERS.map((c, i) => (
               <ChapterCopy key={c.n} chapter={c} index={i} progress={p} />
             ))}
@@ -194,7 +194,7 @@ function ChapterCopy({
   return (
     <motion.div
       style={{ opacity, y }}
-      className="lg:absolute lg:inset-x-0 lg:top-1/2 lg:-translate-y-1/2"
+      className="absolute inset-0 flex flex-col justify-center"
       aria-hidden={false}
     >
       <span className="font-mono text-[11px] tracking-[0.18em] text-teal">{chapter.n}</span>

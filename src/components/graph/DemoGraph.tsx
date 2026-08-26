@@ -360,16 +360,15 @@ export function DemoGraph({
 
         {/* soft focus halo behind the active node */}
         {active && (
-          <motion.circle
-            cx={posOf(active).x}
-            cy={posOf(active).y}
+          <motion.g
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, cx: posOf(active).x, cy: posOf(active).y }}
+            animate={{ opacity: 1, x: posOf(active).x, y: posOf(active).y }}
             transition={{ duration: reduce ? 0 : 0.4 }}
-            r={78}
-            fill="url(#pb-halo)"
-          />
+          >
+            <circle cx={0} cy={0} r={78} fill="url(#pb-halo)" />
+          </motion.g>
         )}
+
 
         {/* nodes */}
         <g>

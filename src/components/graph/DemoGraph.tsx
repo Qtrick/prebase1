@@ -483,25 +483,28 @@ function Edge({
   }
 
   return (
-    <motion.line
-      animate={{
-        x1: pa.x,
-        y1: pa.y,
-        x2: pb.x,
-        y2: pb.y,
-        opacity: visible ? emphasis * (mode === "temporal" ? 0.75 : 0.9) : 0,
-        stroke,
-      }}
-      transition={spring}
-      x1={pa.x}
-      y1={pa.y}
-      x2={pb.x}
-      y2={pb.y}
-      strokeWidth={directional ? 1.5 : 1}
-      markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : ""}
-      style={reveal ? { opacity: revealOpacity } : {}}
-    />
+    <motion.g style={{ opacity: revealOpacity }}>
+      <motion.line
+        animate={{
+          x1: pa.x,
+          y1: pa.y,
+          x2: pb.x,
+          y2: pb.y,
+          opacity: visible ? emphasis * (mode === "temporal" ? 0.75 : 0.9) : 0,
+          stroke,
+        }}
+        transition={spring}
+        initial={false}
+        x1={pa.x}
+        y1={pa.y}
+        x2={pb.x}
+        y2={pb.y}
+        strokeWidth={directional ? 1.5 : 1}
+        markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : ""}
+      />
+    </motion.g>
   );
+
 }
 
 function Node({
@@ -556,45 +559,55 @@ function Node({
   const scale = (hover && interactive ? 1.18 : 1) * (0.9 + pos.depth * 0.12);
 
   return (
-    <motion.g
-      data-node={node.id}
-      initial={false}
-      animate={{ x: pos.x, y: pos.y, opacity: visible ? emphasis : 0 }}
-      transition={spring}
-      style={reveal ? { opacity: revealOpacity } : {}}
-      onPointerEnter={interactive ? () => { setHover(true); onHover?.(node.id); } : undefined}
-      onPointerLeave={interactive ? () => { setHover(false); onHover?.(null); } : undefined}
-      onPointerDown={(e) => onPointerDownNode(e, node.id)}
-      onPointerMove={onPointerMoveNode}
-      onPointerUp={onPointerUpNode}
-      onClick={interactive ? () => onSelect?.(selected ? null : node.id) : undefined}
-      cursor={interactive ? (draggable ? "grab" : "pointer") : undefined}
-      pointerEvents={visible && interactive ? "auto" : "none"}
-    >
-      <circle r={r + 12} fill="transparent" />
-      <motion.circle animate={{ r: r * scale, fill }} transition={spring} r={r} fill={fill} />
-      <motion.circle
-        animate={{ opacity: selected ? 1 : 0, r: r + 7 }}
-        transition={{ duration: 0.25 }}
-        r={r + 7}
-        fill="none"
-        stroke="var(--teal)"
-        strokeWidth={1.4}
-        opacity={0}
-      />
-      <motion.text
-        animate={{ opacity: showLabel ? 0.95 : 0 }}
-        transition={{ duration: 0.2 }}
-        x={r + 8}
-        y={4}
-        fontSize={11.5}
-        fontFamily="var(--font-mono-stack)"
-        fill={selected || hover ? "var(--teal)" : "oklch(0.84 0 0)"}
+    <motion.g style={{ opacity: revealOpacity }}>
+      <motion.g
+        data-node={node.id}
+        initial={false}
+        animate={{ x: pos.x, y: pos.y, opacity: visible ? emphasis : 0 }}
+        transition={spring}
+        onPointerEnter={interactive ? () => { setHover(true); onHover?.(node.id); } : undefined}
+        onPointerLeave={interactive ? () => { setHover(false); onHover?.(null); } : undefined}
+        onPointerDown={(e) => onPointerDownNode(e, node.id)}
+        onPointerMove={onPointerMoveNode}
+        onPointerUp={onPointerUpNode}
+        onClick={interactive ? () => onSelect?.(selected ? null : node.id) : undefined}
+        cursor={interactive ? (draggable ? "grab" : "pointer") : undefined}
+        pointerEvents={visible && interactive ? "auto" : "none"}
       >
-        {label}
-      </motion.text>
+        <circle r={r + 12} fill="transparent" />
+        <motion.circle
+          initial={false}
+          animate={{ r: r * scale, fill }}
+          transition={spring}
+          r={r}
+          fill={fill}
+        />
+        <motion.circle
+          initial={false}
+          animate={{ opacity: selected ? 1 : 0, r: r + 7 }}
+          transition={{ duration: 0.25 }}
+          r={r + 7}
+          fill="none"
+          stroke="var(--teal)"
+          strokeWidth={1.4}
+          opacity={0}
+        />
+        <motion.text
+          initial={false}
+          animate={{ opacity: showLabel ? 0.95 : 0 }}
+          transition={{ duration: 0.2 }}
+          x={r + 8}
+          y={4}
+          fontSize={11.5}
+          fontFamily="var(--font-mono-stack)"
+          fill={selected || hover ? "var(--teal)" : "oklch(0.84 0 0)"}
+        >
+          {label}
+        </motion.text>
+      </motion.g>
     </motion.g>
   );
+
 }
 
 function Tooltip({

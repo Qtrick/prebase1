@@ -14,8 +14,11 @@ export function Hero() {
   });
 
   return (
-    <section id="top" className="relative pt-28 sm:pt-36">
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+    <section
+      id="top"
+      className="relative flex min-h-[100svh] items-center pb-24 pt-28 sm:pt-32"
+    >
+      <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <motion.p
             {...rise(0)}

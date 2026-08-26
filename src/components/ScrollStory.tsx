@@ -132,7 +132,19 @@ export function ScrollStory() {
     });
   });
 
+  const scrollToChapter = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const target = Math.min((BOUNDS[i] ?? 0) + 0.035, 0.99);
+    const range = el.offsetHeight - window.innerHeight;
+    window.scrollTo({
+      top: el.offsetTop + range * target,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  };
+
   /* ---- single source of truth ------------------------------------- */
+
   const group: Group = CHAPTERS[chapter]!.group;
   const mode: GraphMode = group === "temporal" ? "temporal" : "network";
   const temporal = mode === "temporal";

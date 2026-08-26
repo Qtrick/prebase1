@@ -92,9 +92,22 @@ export function jumpToSection(id: string) {
 
   const jump = () => {
     const top = target.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
-    window.scrollTo({ top: Math.max(0, top), behavior: "instant" as ScrollBehavior });
+    const dest = Math.max(0, Math.round(top));
+    window.scrollTo({ top: dest, behavior: "instant" as ScrollBehavior });
     window.history.pushState(null, "", `#${id}`);
     window.dispatchEvent(new CustomEvent(JOURNEY_JUMP_EVENT));
+
+    // Sticky stories settle their layout over the next few frames; without
+    // re-asserting the destination the page visibly drifts (a "jolt") right
+    // after the transition finishes.
+    let frames = 0;
+    const hold = () => {
+      if (Math.abs(window.scrollY - dest) > 1) {
+        window.scrollTo({ top: dest, behavior: "instant" as ScrollBehavior });
+      }
+      if (++frames < 12) requestAnimationFrame(hold);
+    };
+    requestAnimationFrame(hold);
   };
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -105,13 +118,17 @@ export function jumpToSection(id: string) {
   }
 
   // The destination's own content settles in a beat after the page arrives.
-  target.classList.remove("pb-jump-arrive");
-  void target.offsetWidth;
-  target.classList.add("pb-jump-arrive");
-  window.setTimeout(() => target.classList.remove("pb-jump-arrive"), 1400);
+  // The hero animates itself on arrival, so it opts out.
+  if (id !== "top") {
+    target.classList.remove("pb-jump-arrive");
+    void target.offsetWidth;
+    target.classList.add("pb-jump-arrive");
+    window.setTimeout(() => target.classList.remove("pb-jump-arrive"), 1400);
+  }
 
   doc.startViewTransition(jump);
 }
+
 
 
 export function scrollToStep(step: JourneyStep, _reduce = false) {

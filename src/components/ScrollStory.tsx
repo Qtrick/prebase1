@@ -78,11 +78,12 @@ const TEMPORAL_START = BOUNDS[3]!;
 /* ------------------------------------------------------------------ */
 
 const KEY_P = [0, 0.1, 0.28, 0.38, 0.47, 0.57, 0.68, 0.9, 1];
-const KEY_ZOOM = [0.95, 1.0, 1.24, 1.2, 1.2, 1.06, 1.04, 1.02, 1.0];
-const KEY_FX = [400, 400, 322, 360, 340, 400, 400, 400, 400];
-const KEY_FY = [226, 226, 214, 252, 282, 232, 226, 226, 226];
+const KEY_ZOOM = [1, 1, 1.08, 1.08, 1.08, 1.02, 1, 1, 1];
+const KEY_FX = [400, 400, 372, 388, 380, 400, 400, 400, 400];
+const KEY_FY = [226, 226, 222, 238, 250, 230, 226, 226, 226];
 /** extra left bias so the Agents panel has breathing room in the Context chapter */
-const KEY_BIAS = [0, 0, 0, -20, -50, -18, 0, 0, 0];
+const KEY_BIAS = [0, 0, 0, -10, -22, -8, 0, 0, 0];
+
 
 const KEY_X = KEY_FX.map((fx, i) => (VIEW.cx - fx) * KEY_ZOOM[i]! + KEY_BIAS[i]!);
 const KEY_Y = KEY_FY.map((fy, i) => (VIEW.cy - fy) * KEY_ZOOM[i]!);

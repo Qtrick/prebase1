@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useRef, type ReactNode } from "react";
-import { NODES, NODE_BY_ID } from "@/lib/demo-graph";
+import { NODES } from "@/lib/demo-graph";
 import type { GraphMode } from "@/components/graph/DemoGraph";
 
 /** Files shown in the "PreBase Maps" explorer, derived from the demo model. */
@@ -24,7 +24,7 @@ export function ModeToggle({
   idPrefix,
 }: {
   mode: GraphMode;
-  onChange?: (m: GraphMode) => void;
+  onChange?: ((m: GraphMode) => void) | undefined;
   idPrefix: string;
 }) {
   const interactive = Boolean(onChange);
@@ -127,7 +127,6 @@ export function IdeFrame({
   }
 
   const active = hovered ?? selected;
-  const activeNeighbors = active ? new Set(NODE_BY_ID[active] ? [active] : []) : null;
 
   return (
     <motion.div
@@ -247,7 +246,6 @@ export function IdeFrame({
           )}
         </div>
       </div>
-      {activeNeighbors ? null : null}
     </motion.div>
   );
 }

@@ -209,7 +209,7 @@ export function AgentsPanel({
               </AnimatePresence>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex shrink-0 flex-col gap-1.5">
               {suggestions.slice(0, 3).map((s) => (
                 <button
                   key={s}
@@ -228,7 +228,7 @@ export function AgentsPanel({
                 e.preventDefault();
                 send(draft);
               }}
-              className="flex items-center gap-1.5 rounded-md border border-border bg-surface-2 p-1.5"
+              className="flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface-2 p-1.5"
             >
               <label className="sr-only" htmlFor="pb-agent-input">
                 Message the agent

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { NODE_BY_ID } from "@/lib/demo-graph";
+import { NEIGHBORS, NODE_BY_ID } from "@/lib/demo-graph";
 import {
   AGENT_MODES,
   STREAM_CHARS_PER_TICK,
@@ -41,7 +41,9 @@ export function AgentsPanel({
   const [activity, setActivity] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
 
-  const ids = contextIds ?? [];
+  // Fall back to the selected node's direct edges so the header never claims
+  // "+0 connected files" for a node that clearly has relationships.
+  const ids = contextIds ?? (selected ? NEIGHBORS[selected] ?? [] : []);
   const related = ids.filter((id) => id !== selected);
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);

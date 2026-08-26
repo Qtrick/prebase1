@@ -133,21 +133,24 @@ export function DemoGraph({
     };
   }, [controlsRef, onSelect, panX, panY, setZoom, zoomMV]);
 
-  // Wheel zoom / trackpad pinch — native non-passive listener.
+  // Wheel zoom / trackpad pinch — ONLY in "full" mode. In "select" mode the
+  // document keeps ownership of the wheel so page scrolling is never stolen.
   const wheelRef = useRef<(e: WheelEvent) => void>(() => {});
   wheelRef.current = (e: WheelEvent) => {
-    if (!interactive) return;
+    if (!full) return;
     e.preventDefault();
     const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
     setZoom(zoomMV.get() * Math.exp(-dy * 0.0015));
   };
   useEffect(() => {
+    if (!full) return;
     const el = svgRef.current;
     if (!el) return;
     const handler = (e: WheelEvent) => wheelRef.current(e);
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
-  }, []);
+  }, [full]);
+
 
   // Background panning
   const panState = useRef<{ id: number; x: number; y: number; ox: number; oy: number } | null>(

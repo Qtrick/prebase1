@@ -87,6 +87,7 @@ export function TemporalTimeline({
   visible?: boolean;
 }) {
   const interactive = Boolean(onCommit);
+  const scrubId = useId();
   return (
     <motion.div
       initial={false}

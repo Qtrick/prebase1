@@ -474,7 +474,7 @@ function MiniApp() {
           </div>
         ))}
       </div>
-      <div className="mt-2 flex min-h-0 flex-1 items-end gap-1">
+      <div className="mt-2 flex max-h-[46%] min-h-0 flex-1 items-end gap-1">
         {[40, 62, 34, 78, 55, 88, 47].map((h, i) => (
           <span key={i} style={{ height: `${h}%` }} className="w-full rounded-sm bg-teal/45" />
         ))}
@@ -528,7 +528,7 @@ function DesktopRuntime({ step }: { step: number }) {
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-md border border-border-strong bg-surface-2 shadow-[0_20px_50px_-30px_rgba(0,0,0,1)]"
+            className="flex h-full max-h-[300px] w-full min-w-0 max-w-[580px] flex-col overflow-hidden rounded-md border border-border-strong bg-surface-2 shadow-[0_20px_50px_-30px_rgba(0,0,0,1)]"
           >
             {/* native-like title bar */}
             <div className="flex shrink-0 items-center gap-1.5 border-b border-border bg-surface-3/70 px-2 py-1.5">

@@ -132,7 +132,19 @@ export function ScrollStory() {
     });
   });
 
+  const scrollToChapter = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const target = Math.min((BOUNDS[i] ?? 0) + 0.035, 0.99);
+    const range = el.offsetHeight - window.innerHeight;
+    window.scrollTo({
+      top: el.offsetTop + range * target,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  };
+
   /* ---- single source of truth ------------------------------------- */
+
   const group: Group = CHAPTERS[chapter]!.group;
   const mode: GraphMode = group === "temporal" ? "temporal" : "network";
   const temporal = mode === "temporal";
@@ -248,7 +260,7 @@ export function ScrollStory() {
         {/* chapter rail, desktop only */}
         <nav
           aria-label="Story progress"
-          className="pointer-events-none absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-2 xl:flex"
+          className="absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-2 xl:flex"
         >
           {(["network", "temporal"] as Group[]).map((g) => (
             <div key={g} className="flex flex-col gap-2">
@@ -262,26 +274,32 @@ export function ScrollStory() {
               </span>
               {CHAPTERS.map((c, i) =>
                 c.group !== g ? null : (
-                  <span
+                  <button
                     key={c.n}
+                    type="button"
+                    onClick={() => scrollToChapter(i)}
+                    aria-current={chapter === i ? "step" : undefined}
                     className={
-                      "flex items-center gap-2 pl-1 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 " +
+                      "group flex cursor-pointer items-center gap-2 pl-1 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 hover:text-teal " +
                       (chapter === i ? "text-teal" : "text-muted-foreground/40")
                     }
                   >
                     <span
                       className={
-                        "inline-block h-px transition-all duration-300 " +
+                        "inline-block h-px transition-all duration-300 group-hover:w-5 group-hover:bg-teal " +
                         (chapter === i ? "w-4 bg-teal" : "w-2 bg-muted-foreground/30")
                       }
                     />
-                    {c.n} {c.nav.toUpperCase()}
-                  </span>
+                    <span className="transition-transform duration-300 group-hover:translate-x-0.5">
+                      {c.n} {c.nav.toUpperCase()}
+                    </span>
+                  </button>
                 ),
               )}
             </div>
           ))}
         </nav>
+
       </div>
     </section>
   );

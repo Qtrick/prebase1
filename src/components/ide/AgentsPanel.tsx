@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { NODE_BY_ID } from "@/lib/demo-graph";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { NEIGHBORS, NODE_BY_ID } from "@/lib/demo-graph";
 import {
   AGENT_MODES,
   STREAM_CHARS_PER_TICK,
@@ -15,6 +15,9 @@ import {
 
 let uid = 0;
 const nextId = () => `m${++uid}`;
+
+const COMPOSER_MIN = 38;
+const COMPOSER_MAX = 96;
 
 export function AgentsPanel({
   contextIds,
@@ -31,15 +34,20 @@ export function AgentsPanel({
   chat?: boolean;
 }) {
   const reduce = useReducedMotion();
+  const inputId = `pb-agent-input-${useId()}`;
   const [mode, setMode] = useState<AgentMode>("Ask");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [activity, setActivity] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
 
-  const ids = contextIds ?? [];
+  // Fall back to the selected node's direct edges so the header never claims
+  // "+0 connected files" for a node that clearly has relationships.
+  const ids = contextIds ?? (selected ? NEIGHBORS[selected] ?? [] : []);
   const related = ids.filter((id) => id !== selected);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const pinned = useRef(true);
 
   // --- cancellation -------------------------------------------------------
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -61,16 +69,29 @@ export function AgentsPanel({
     cancel();
   }, [selected, mode]);
 
+  // Only follow new content when the reader has not scrolled up. Never touches
+  // the document scroll position — this container scrolls itself.
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el && pinned.current) el.scrollTop = el.scrollHeight;
   }, [messages, activity]);
+
+  /** Autosize the composer between MIN and MAX, then scroll internally. */
+  const autosize = () => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(COMPOSER_MAX, Math.max(COMPOSER_MIN, el.scrollHeight))}px`;
+  };
+  useLayoutEffect(autosize, [draft]);
+  useLayoutEffect(autosize, [selected]);
 
   function send(text: string) {
     const value = text.trim();
     if (!value || streaming) return;
     cancel();
     const run = runId.current;
+    pinned.current = true;
 
     setMessages((m) => [...m, { id: nextId(), role: "user", text: value }]);
     setDraft("");
@@ -117,12 +138,12 @@ export function AgentsPanel({
     );
   }
 
-  const suggestions = suggestionsFor(selected);
+  const suggestions = suggestionsFor(selected, mode);
 
   return (
     <div className="flex h-full min-h-0 flex-col text-[12.5px]">
-      <p className="pb-3 text-[10px] tracking-[0.16em] text-muted-foreground">AGENTS</p>
-      <div className="flex gap-1.5 text-[11px]" role="group" aria-label="Agent mode">
+      <p className="shrink-0 pb-3 text-[10px] tracking-[0.16em] text-muted-foreground">AGENTS</p>
+      <div className="flex shrink-0 gap-1.5 text-[11px]" role="group" aria-label="Agent mode">
         {AGENT_MODES.map((m) => (
           <button
             key={m}
@@ -146,12 +167,12 @@ export function AgentsPanel({
         transition={{ duration: 0.4 }}
         className="mt-3.5 flex min-h-0 flex-1 flex-col gap-2.5"
       >
-        <div className="flex items-center gap-1.5 font-mono text-[11px] text-teal">
+        <div className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] text-teal">
           <span className="inline-block size-1.5 rounded-full bg-teal" />
           {ids.length || selected ? "Context ready" : "No context"}
         </div>
         {selected && (
-          <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
+          <p className="shrink-0 font-mono text-[11px] leading-relaxed text-muted-foreground">
             {NODE_BY_ID[selected]?.label} · +{related.length} connected files
           </p>
         )}
@@ -162,6 +183,10 @@ export function AgentsPanel({
           <>
             <div
               ref={scrollRef}
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+              }}
               className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain pr-0.5"
             >
               {messages.length === 0 && (
@@ -216,7 +241,7 @@ export function AgentsPanel({
                   type="button"
                   disabled={streaming}
                   onClick={() => send(s)}
-                  className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-1.5 text-left text-[11.5px] leading-[1.4] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-40"
+                  className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-1.5 text-left text-[12px] leading-[1.45] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-40"
                 >
                   {s}
                 </button>
@@ -228,13 +253,14 @@ export function AgentsPanel({
                 e.preventDefault();
                 send(draft);
               }}
-              className="flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface-2 p-1.5"
+              className="flex shrink-0 items-end gap-1.5 rounded-md border border-border bg-surface-2 p-1.5"
             >
-              <label className="sr-only" htmlFor="pb-agent-input">
+              <label className="sr-only" htmlFor={inputId}>
                 Message the agent
               </label>
               <textarea
-                id="pb-agent-input"
+                id={inputId}
+                ref={taRef}
                 rows={1}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -245,13 +271,14 @@ export function AgentsPanel({
                   }
                 }}
                 placeholder={placeholderFor(selected)}
-                className="max-h-24 min-h-[30px] flex-1 resize-none bg-transparent px-1.5 py-1 text-[12.5px] leading-[1.45] text-foreground outline-none placeholder:text-muted-foreground/70"
+                style={{ height: COMPOSER_MIN, maxHeight: COMPOSER_MAX }}
+                className="min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-1.5 py-1.5 text-[12.5px] leading-[1.45] text-foreground outline-none placeholder:text-muted-foreground/70"
               />
               <button
                 type="submit"
                 aria-label="Send message"
                 disabled={!draft.trim() || streaming}
-                className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded border border-teal/30 bg-teal/10 text-teal transition-colors hover:bg-teal/20 disabled:cursor-default disabled:opacity-35"
+                className="mb-0.5 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded border border-teal/30 bg-teal/10 text-teal transition-colors hover:bg-teal/20 disabled:cursor-default disabled:opacity-35"
               >
                 ↑
               </button>

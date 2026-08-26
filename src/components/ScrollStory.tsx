@@ -280,20 +280,21 @@ export function ScrollStory() {
                     onClick={() => scrollToChapter(i)}
                     aria-current={chapter === i ? "step" : undefined}
                     className={
-                      "group flex cursor-pointer items-center gap-2 pl-1 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 hover:text-teal " +
+                      "group flex cursor-pointer items-center gap-2 rounded-sm py-0.5 pl-1 pr-1 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 hover:text-teal focus-visible:text-teal motion-reduce:transition-none " +
                       (chapter === i ? "text-teal" : "text-muted-foreground/40")
                     }
                   >
                     <span
                       className={
-                        "inline-block h-px transition-all duration-300 group-hover:w-5 group-hover:bg-teal " +
+                        "inline-block h-px transition-all duration-300 group-hover:w-5 group-hover:bg-teal group-focus-visible:w-5 group-focus-visible:bg-teal motion-reduce:transition-none " +
                         (chapter === i ? "w-4 bg-teal" : "w-2 bg-muted-foreground/30")
                       }
                     />
-                    <span className="transition-transform duration-300 group-hover:translate-x-0.5">
+                    <span className="transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none">
                       {c.n} {c.nav.toUpperCase()}
                     </span>
                   </button>
+
                 ),
               )}
             </div>

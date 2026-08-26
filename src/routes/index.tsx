@@ -4,7 +4,7 @@ import { Hero } from "@/components/Hero";
 import { ScrollStory } from "@/components/ScrollStory";
 import { Playground } from "@/components/Playground";
 import { ScrollProgress } from "@/components/ScrollProgress";
-import { IdeStrip } from "@/components/IdeStrip";
+import { IdeStory } from "@/components/IdeStory";
 import { Waitlist } from "@/components/Waitlist";
 import { Footer } from "@/components/Footer";
 
@@ -39,7 +39,7 @@ function Index() {
         <Hero />
         <ScrollStory />
         <Playground />
-        <IdeStrip />
+        <IdeStory />
         <Waitlist />
       </main>
       <Footer />

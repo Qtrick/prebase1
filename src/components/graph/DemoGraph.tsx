@@ -690,19 +690,6 @@ function Node({
           strokeWidth={1.4}
           opacity={0}
         />
-        {placement?.leader && (
-          <motion.line
-            initial={false}
-            animate={{ opacity: placement ? 0.35 : 0 }}
-            transition={{ duration: 0.2 }}
-            x1={Math.sign(placement.dx || 1) * r}
-            y1={0}
-            x2={placement.dx * 0.92}
-            y2={placement.dy - fontSize * 0.32}
-            stroke="oklch(0.7 0 0)"
-            strokeWidth={0.7}
-          />
-        )}
         <motion.text
           initial={false}
           animate={{ opacity: placement ? 0.96 : 0 }}

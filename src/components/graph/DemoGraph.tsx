@@ -435,7 +435,7 @@ function Edge({
   commit: number;
   emphasis: number;
   directional: boolean;
-  reveal?: MotionValue<number>;
+  reveal?: MotionValue<number> | undefined;
   spring: object;
   visible: boolean;
 }) {
@@ -444,8 +444,9 @@ function Edge({
   const na = NODE_BY_ID[a]!;
   const nb = NODE_BY_ID[b]!;
   const threshold = 0.04 + (index / EDGES.length) * 0.5;
+  const fallback = useMotionValue(1);
   const revealOpacity = useTransform(
-    reveal ?? useMotionValue(1),
+    reveal ?? fallback,
     [threshold, threshold + 0.08],
     [0, 1],
   );
@@ -476,8 +477,8 @@ function Edge({
       x2={pb.x}
       y2={pb.y}
       strokeWidth={directional ? 1.5 : 1}
-      markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : undefined}
-      style={reveal ? { opacity: revealOpacity } : undefined}
+      markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : ""}
+      style={reveal ? { opacity: revealOpacity } : {}}
     />
   );
 }
@@ -515,7 +516,7 @@ function Node({
   selected: boolean;
   interactive: boolean;
   draggable: boolean;
-  reveal?: MotionValue<number>;
+  reveal?: MotionValue<number> | undefined;
   spring: object;
   onHover?: (id: string | null) => void;
   onSelect?: (id: string | null) => void;
@@ -525,8 +526,9 @@ function Node({
 }) {
   const [hover, setHover] = useState(false);
   const threshold = (index / NODES.length) * 0.45;
+  const fallback = useMotionValue(1);
   const revealOpacity = useTransform(
-    reveal ?? useMotionValue(1),
+    reveal ?? fallback,
     [threshold, threshold + 0.06],
     [0, 1],
   );
@@ -538,9 +540,9 @@ function Node({
       initial={false}
       animate={{ x: pos.x, y: pos.y, opacity: visible ? emphasis : 0 }}
       transition={spring}
-      style={reveal ? { opacity: revealOpacity } : undefined}
-      onPointerEnter={interactive ? () => (setHover(true), onHover?.(node.id)) : undefined}
-      onPointerLeave={interactive ? () => (setHover(false), onHover?.(null)) : undefined}
+      style={reveal ? { opacity: revealOpacity } : {}}
+      onPointerEnter={interactive ? () => { setHover(true); onHover?.(node.id); } : undefined}
+      onPointerLeave={interactive ? () => { setHover(false); onHover?.(null); } : undefined}
       onPointerDown={(e) => onPointerDownNode(e, node.id)}
       onPointerMove={onPointerMoveNode}
       onPointerUp={onPointerUpNode}

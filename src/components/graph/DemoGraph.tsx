@@ -33,20 +33,20 @@ export type DemoGraphProps = {
   commit?: number;
   /** temporal display mode */
   focusChanges?: boolean;
-  selected?: string | null;
-  hovered?: string | null;
-  onSelect?: (id: string | null) => void;
-  onHover?: (id: string | null) => void;
+  selected?: string | null | undefined;
+  hovered?: string | null | undefined;
+  onSelect?: ((id: string | null) => void) | undefined;
+  onHover?: ((id: string | null) => void) | undefined;
   /** ids receiving agent-context emphasis */
-  agentContext?: string[] | null;
+  agentContext?: string[] | null | undefined;
   /** enable pointer hover / drag / wheel zoom */
   interactive?: boolean;
   draggable?: boolean;
   /** 0..1 continuous reveal used by the scroll story */
-  reveal?: MotionValue<number>;
+  reveal?: MotionValue<number> | undefined;
   /** external camera zoom (scroll story) */
-  cameraZoom?: MotionValue<number>;
-  className?: string;
+  cameraZoom?: MotionValue<number> | undefined;
+  className?: string | undefined;
   /** expose zoom controls to a parent toolbar */
   controlsRef?: React.MutableRefObject<GraphControlsApi | null>;
   labelAll?: boolean;

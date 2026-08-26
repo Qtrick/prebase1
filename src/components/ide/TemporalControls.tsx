@@ -18,7 +18,8 @@ export function TemporalToolbar({
   return (
     <motion.div
       initial={false}
-      animate={{ opacity: visible ? 1 : 0, height: visible ? "auto" : 0 }}
+      animate={{ opacity: visible ? 1 : 0 }}
+      style={{ display: visible ? "block" : "none" }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="shrink-0 overflow-hidden border-b border-border bg-surface-2/40"
     >

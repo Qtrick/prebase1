@@ -16,6 +16,7 @@ import {
   TemporalToolbar,
 } from "@/components/ide/TemporalControls";
 import { COMMITS, VIEW, contextFor, diffCounts, type LayoutMode } from "@/lib/demo-graph";
+import { STORY_BOUNDS } from "@/lib/journey";
 
 /**
  * The guided story is a single state machine driven exclusively by scroll.
@@ -68,7 +69,7 @@ const CHAPTERS: Array<{
   },
 ];
 
-const BOUNDS = [0, 0.19, 0.38, 0.57, 0.8, 1];
+const BOUNDS = STORY_BOUNDS;
 /** The single Network → Temporal boundary. */
 const TEMPORAL_START = BOUNDS[3]!;
 

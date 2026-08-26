@@ -69,10 +69,15 @@ export function stepTargetY(step: JourneyStep): number | null {
   return top + range * target;
 }
 
-export function scrollToStep(step: JourneyStep, reduce = false) {
+/**
+ * Navigation jumps straight to the target step. Smooth scrolling would replay
+ * every intermediate chapter of the story, which reads as noise when the
+ * visitor has already asked to be somewhere specific.
+ */
+export function scrollToStep(step: JourneyStep, _reduce = false) {
   const y = stepTargetY(step);
   if (y == null) return;
-  window.scrollTo({ top: y, behavior: reduce ? "auto" : "smooth" });
+  window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
 }
 
 export function chapterFromProgress(v: number, bounds: readonly number[], max: number) {

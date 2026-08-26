@@ -183,7 +183,10 @@ export function ScrollStory() {
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
         <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center lg:gap-8">
           {/* product canvas */}
-          <div className="order-2 h-[44svh] min-h-[280px] sm:h-[52svh] lg:order-1 lg:h-[min(64vh,560px)]">
+          <motion.div
+            style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}
+            className="order-2 h-[44svh] min-h-[280px] sm:h-[52svh] lg:order-1 lg:h-[min(64vh,560px)]"
+          >
             <IdeFrame
               className="h-full"
               mode={mode}

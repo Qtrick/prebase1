@@ -633,7 +633,8 @@ function Node({
   emphasis: number;
   visible: boolean;
   label: string;
-  showLabel: boolean;
+  placement?: LabelPlacement | undefined;
+  fontSize: number;
   selected: boolean;
   interactive: boolean;
   draggable: boolean;

@@ -118,8 +118,9 @@ export function IdeFrame({
     const py = (e.clientY - rect.top) / rect.height;
     ref.current.style.setProperty("--mx", `${px * 100}%`);
     ref.current.style.setProperty("--my", `${py * 100}%`);
-    ref.current.style.setProperty("--rx", `${(0.5 - py) * 1.6}deg`);
-    ref.current.style.setProperty("--ry", `${(px - 0.5) * 2}deg`);
+    ref.current.style.setProperty("--rx", `${(0.5 - py) * 0.9}deg`);
+    ref.current.style.setProperty("--ry", `${(px - 0.5) * 1.1}deg`);
+
   }
 
   function onPointerLeave() {

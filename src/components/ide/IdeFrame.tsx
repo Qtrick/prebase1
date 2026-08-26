@@ -279,9 +279,17 @@ export function IdeFrame({
 
           {/* agents panel */}
           {agents && (
-            <aside className={"hidden w-56 shrink-0 overflow-y-auto border-l border-border bg-surface-1/80 p-3 " + (agentsWide ? "2xl:block" : "lg:block")}>
-              {agents}
-            </aside>
+            <motion.aside
+              initial={false}
+              animate={{ width: agentsOpen ? 240 : 0, opacity: agentsOpen ? 1 : 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className={
+                "hidden shrink-0 overflow-hidden border-l border-border bg-surface-1/80 " +
+                (agentsWide ? "2xl:block" : "lg:block")
+              }
+            >
+              <div className="h-full w-60 overflow-y-auto p-3.5">{agents}</div>
+            </motion.aside>
           )}
         </div>
       </div>

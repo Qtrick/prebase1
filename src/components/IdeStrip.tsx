@@ -95,26 +95,9 @@ function Panel({ cap }: { cap: Cap }) {
     );
   }
   if (cap === "Runtime Preview") {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
-          <span className="rounded border border-border bg-background/60 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-            localhost:3000
-          </span>
-          <span className="font-mono text-[10px] text-teal">live</span>
-        </div>
-        <div className="flex flex-1 flex-col gap-2 p-4">
-          <div className="h-3 w-1/3 rounded bg-surface-3" />
-          <div className="h-2 w-2/3 rounded bg-surface-2" />
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            <div className="h-14 rounded border border-border bg-surface-2/70" />
-            <div className="h-14 rounded border border-border bg-surface-2/70" />
-            <div className="h-14 rounded border border-border bg-surface-2/70" />
-          </div>
-        </div>
-      </div>
-    );
+    return <RuntimePreview />;
   }
+
   if (cap === "Source Control") {
     return (
       <div className="grid h-full grid-cols-[150px_minmax(0,1fr)]">

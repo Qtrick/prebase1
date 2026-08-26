@@ -496,7 +496,8 @@ export function DemoGraph({
               emphasis={emphasis(n.id)}
               visible={present(n)}
               label={mode === "temporal" ? labelAt(n, commit) : n.label}
-              showLabel={labelVisible(n)}
+              placement={placements[n.id]}
+              fontSize={FONT}
               selected={selected === n.id}
               interactive={interactive}
               draggable={draggable}

@@ -39,13 +39,20 @@ export type DemoGraphProps = {
   onHover?: ((id: string | null) => void) | undefined;
   /** ids receiving agent-context emphasis */
   agentContext?: string[] | null | undefined;
-  /** enable pointer hover / drag / wheel zoom */
-  interactive?: boolean;
-  draggable?: boolean;
+  /**
+   * Capability level:
+   *  - "none"   : purely decorative
+   *  - "select" : hover / click nodes only (guided story) — never captures wheel or pans
+   *  - "full"   : hover, click, wheel zoom, background pan, node drag (playground)
+   */
+  interactionMode?: "none" | "select" | "full";
   /** 0..1 continuous reveal used by the scroll story */
   reveal?: MotionValue<number> | undefined;
-  /** external camera zoom (scroll story) */
+  /** external camera (scroll story owns it when provided) */
   cameraZoom?: MotionValue<number> | undefined;
+  cameraX?: MotionValue<number> | undefined;
+  cameraY?: MotionValue<number> | undefined;
+
   className?: string | undefined;
   /** expose zoom controls to a parent toolbar */
   controlsRef?: React.MutableRefObject<GraphControlsApi | null>;

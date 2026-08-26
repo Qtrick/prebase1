@@ -404,7 +404,7 @@ export function DemoGraph({
         {active && (
           <g transform={`translate(${posOf(active).x} ${posOf(active).y})`}>
             <motion.circle
-              initial={reduce ? false : { opacity: 0, scale: 0.86 }}
+              initial={reduce ? false : { scale: 0.86 }}
               animate={{ scale: 1 }}
               transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}
               cx={0}

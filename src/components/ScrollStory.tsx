@@ -179,7 +179,7 @@ export function ScrollStory() {
                 onSelect={setUserSelected}
                 agentContext={chapter >= 3 && context ? context : null}
                 interactionMode="select"
-                reveal={chapter === 0 ? reveal : undefined}
+                reveal={reveal}
                 cameraZoom={cameraZoom}
                 cameraX={cameraX}
                 cameraY={cameraY}

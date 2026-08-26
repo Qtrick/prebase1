@@ -33,15 +33,15 @@ export const PRODUCT_JOURNEY: JourneyStep[] = [
   { id: "context", n: "03", group: "NETWORK", label: "Context", section: "product", chapter: 2 },
   { id: "history", n: "04", group: "TEMPORAL", label: "History", section: "product", chapter: 3 },
   { id: "change", n: "05", group: "TEMPORAL", label: "Change", section: "product", chapter: 4 },
-  { id: "playground", n: "06", group: "EXPLORE", label: "Playground", section: "explore", chapter: 0 },
-  { id: "editor", n: "07", group: "WORKBENCH", label: "Editor", section: "why", chapter: 0 },
-  { id: "terminal", n: "08", group: "WORKBENCH", label: "Terminal", section: "why", chapter: 1 },
-  { id: "source-control", n: "09", group: "WORKBENCH", label: "Source Control", section: "why", chapter: 2 },
-  { id: "runtime", n: "10", group: "WORKBENCH", label: "Runtime", section: "why", chapter: 3 },
-  { id: "extensions", n: "11", group: "WORKBENCH", label: "Extensions", section: "why", chapter: 4 },
+  { id: "editor", n: "06", group: "WORKBENCH", label: "Editor", section: "why", chapter: 0 },
+  { id: "terminal", n: "07", group: "WORKBENCH", label: "Terminal", section: "why", chapter: 1 },
+  { id: "source-control", n: "08", group: "WORKBENCH", label: "Source Control", section: "why", chapter: 2 },
+  { id: "runtime", n: "09", group: "WORKBENCH", label: "Runtime", section: "why", chapter: 3 },
+  { id: "extensions", n: "10", group: "WORKBENCH", label: "Extensions", section: "why", chapter: 4 },
+  { id: "playground", n: "11", group: "EXPLORE", label: "Playground", section: "explore", chapter: 0 },
 ];
 
-export const JOURNEY_GROUPS: JourneyGroup[] = ["NETWORK", "TEMPORAL", "EXPLORE", "WORKBENCH"];
+export const JOURNEY_GROUPS: JourneyGroup[] = ["NETWORK", "TEMPORAL", "WORKBENCH", "EXPLORE"];
 
 const SECTION_ID: Record<JourneySection, string> = {
   product: "product",
@@ -197,12 +197,12 @@ export function useJourneyPosition(): JourneyPosition {
       const visible = y + vh * 0.6 >= pTop && y + vh * 0.55 < wlTop;
 
       let index = -1;
-      if (y + vh * 0.5 >= wTop) {
+      if (y + vh * 0.5 >= eTop) {
+        index = 10;
+      } else if (y + vh * 0.5 >= wTop) {
         const range = Math.max(1, why.offsetHeight - vh);
         const v = Math.min(1, Math.max(0, (y - wTop) / range));
-        index = 6 + chapterFromProgress(v, WORKBENCH_BOUNDS, 4);
-      } else if (y + vh * 0.5 >= eTop) {
-        index = 5;
+        index = 5 + chapterFromProgress(v, WORKBENCH_BOUNDS, 4);
       } else if (y + vh * 0.5 >= pTop) {
         const range = Math.max(1, product.offsetHeight - vh);
         const v = Math.min(1, Math.max(0, (y - pTop) / range));

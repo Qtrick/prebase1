@@ -14,35 +14,35 @@ type Cap = "Editor" | "Terminal" | "Source Control" | "Runtime Preview" | "Exten
 
 const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: string }> = [
   {
-    n: "07",
+    n: "06",
     cap: "Editor",
     title: "Move from the map into the code.",
     body: "Open a node from the Code Graph and work in the corresponding file without leaving the workspace. The structural context that helped you find the code stays part of the same PreBase session.",
     meta: "Code-OSS editor · graph-to-file navigation",
   },
   {
-    n: "08",
+    n: "07",
     cap: "Terminal",
     title: "Run what you're building.",
     body: "Use the integrated terminal for development servers, tests, build commands, and project tasks while the rest of the workspace stays in context.",
     meta: "Integrated shell · project tasks · test output",
   },
   {
-    n: "09",
+    n: "08",
     cap: "Source Control",
     title: "Review the change in context.",
     body: "Inspect modified files and diffs without leaving the environment where PreBase already understands the surrounding system.",
     meta: "Git state · file diffs · repository context",
   },
   {
-    n: "10",
+    n: "09",
     cap: "Runtime Preview",
     title: "Test what actually runs.",
     body: "Preview supported local web applications directly in the workspace and inspect responsive states without switching to another tool.",
     meta: "Web runtime · Electron runtime · Agent evidence",
   },
   {
-    n: "11",
+    n: "10",
     cap: "Extensions",
     title: "Keep the tools around the workflow.",
     body: "PreBase is built on the Code-OSS workbench, so familiar development extensions remain part of the environment instead of forcing a separate toolchain.",

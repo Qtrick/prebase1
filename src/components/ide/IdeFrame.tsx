@@ -28,26 +28,59 @@ export function ModeToggle({
   idPrefix: string;
 }) {
   const interactive = Boolean(onChange);
+  const modes = ["network", "temporal"] as GraphMode[];
+  const labelOf = (m: GraphMode) => (m === "network" ? "Network" : "Temporal");
+
+  // Indicator-only: no buttons, no focus, no hover affordance. Scroll owns the
+  // mode in the guided story, so this must not look or behave like a control.
+  if (!interactive) {
+    return (
+      <div
+        className="inline-flex cursor-default select-none rounded-md border border-border bg-surface-2 p-0.5 text-[11px]"
+        role="status"
+        aria-live="polite"
+        aria-label={`Current graph mode: ${labelOf(mode)}`}
+      >
+        {modes.map((m) => {
+          const active = mode === m;
+          return (
+            <span key={m} className="relative rounded-[5px] px-2.5 py-1">
+              {active && (
+                <motion.span
+                  layoutId={`pb-seg-${idPrefix}`}
+                  className="absolute inset-0 rounded-[5px] border border-teal/30 bg-teal/10"
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                />
+              )}
+              <span
+                aria-hidden="true"
+                className={"relative " + (active ? "text-teal" : "text-muted-foreground/60")}
+              >
+                {labelOf(m)}
+              </span>
+            </span>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div
       className="inline-flex rounded-md border border-border bg-surface-2 p-0.5 text-[11px]"
-      role={interactive ? "group" : undefined}
-      aria-label={interactive ? "Graph mode" : undefined}
-      aria-hidden={interactive ? undefined : true}
+      role="group"
+      aria-label="Graph mode"
     >
-      {(["network", "temporal"] as GraphMode[]).map((m) => {
-        const label = m === "network" ? "Network" : "Temporal";
+      {modes.map((m) => {
         const active = mode === m;
         return (
           <button
             key={m}
             type="button"
             aria-pressed={active}
-            tabIndex={interactive ? 0 : -1}
             onClick={() => onChange?.(m)}
             className={
-              "relative rounded-[5px] px-2.5 py-1 transition-colors duration-200 " +
-              (interactive ? "cursor-pointer " : "cursor-default ") +
+              "relative cursor-pointer rounded-[5px] px-2.5 py-1 transition-colors duration-200 " +
               (active ? "text-teal" : "text-muted-foreground hover:text-foreground")
             }
           >
@@ -58,7 +91,7 @@ export function ModeToggle({
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               />
             )}
-            <span className="relative">{label}</span>
+            <span className="relative">{labelOf(m)}</span>
           </button>
         );
       })}

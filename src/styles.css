@@ -107,6 +107,9 @@
     font-family: var(--font-sans-stack);
     -webkit-font-smoothing: antialiased;
     overflow-x: clip;
+    /* Sticky story sections otherwise let the browser re-anchor scroll after a
+       jump, which shows up as a jolt. */
+    overflow-anchor: none;
   }
 
   h1,

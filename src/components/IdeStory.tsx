@@ -459,7 +459,7 @@ function MiniApp() {
   return (
     <div className="flex h-full flex-col overflow-hidden p-2.5 text-foreground">
       <div className="flex items-center justify-between border-b border-border/70 pb-1.5">
-        <span className="text-[11px] font-medium">Project Atlas</span>
+        <span className="text-[11px] font-medium">demo-app</span>
         <nav className="flex gap-2 text-[9px] text-muted-foreground">
           <span className="text-teal">Overview</span>
           <span>Activity</span>
@@ -539,7 +539,7 @@ function DesktopRuntime({ step }: { step: number }) {
               <span className="size-2 rounded-full bg-danger/70" />
               <span className="size-2 rounded-full bg-warning/70" />
               <span className="size-2 rounded-full bg-success/70" />
-              <span className="mx-auto truncate text-[10px] text-foreground/80">Atlas Desktop</span>
+              <span className="mx-auto truncate text-[10px] text-foreground/80">demo-app · desktop</span>
             </div>
             <div className="grid min-h-0 flex-1 grid-cols-[64px_minmax(0,1fr)]">
               <nav className="min-h-0 space-y-1 border-r border-border p-1.5 text-[9px] text-muted-foreground">

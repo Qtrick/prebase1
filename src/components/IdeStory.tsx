@@ -181,14 +181,15 @@ export function IdeStory() {
   );
 }
 
-/** Read-only status indicator — scroll owns this state, so it is not a control. */
+/**
+ * Navigation, not state: a click scrolls to the chapter's real story position
+ * and the active tab is then derived from scroll like everything else.
+ */
 function CapabilityStrip({ active }: { active: Cap }) {
   const reduce = useReducedMotion();
   const wrap = useRef<HTMLDivElement>(null);
-  const activeRef = useRef<HTMLSpanElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
 
-  // Keep the current capability visible when the strip scrolls horizontally on
-  // narrow screens. Scroll still owns the state; this only follows it.
   useEffect(() => {
     const el = activeRef.current;
     const box = wrap.current;
@@ -200,32 +201,33 @@ function CapabilityStrip({ active }: { active: Cap }) {
   }, [active, reduce]);
 
   return (
-    <div
+    <nav
       ref={wrap}
-      role="status"
-      aria-live="polite"
-      aria-label={`Current IDE capability: ${active}`}
-      className="-mx-5 flex shrink-0 cursor-default select-none gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+      aria-label="Workbench capabilities"
+      className="-mx-5 flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
     >
-      {CAP_LIST.map((c) => {
+      {CAP_LIST.map((c, i) => {
         const on = c === active;
+        const step = WORKBENCH_STEPS[i]!;
         return (
-          <span
+          <button
             key={c}
             ref={on ? activeRef : undefined}
-            aria-hidden="true"
+            type="button"
+            aria-current={on ? "step" : undefined}
+            onClick={() => scrollToStep(step, Boolean(reduce))}
             className={
-              "relative shrink-0 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors duration-300 " +
+              "relative min-h-11 shrink-0 cursor-pointer rounded-md border px-3 py-2 font-mono text-[11px] transition-colors duration-200 " +
               (on
                 ? "border-teal/40 bg-teal/10 text-teal"
-                : "border-border bg-surface-2/50 text-muted-foreground/60")
+                : "border-border bg-surface-2/40 text-muted-foreground hover:border-border-strong hover:text-foreground")
             }
           >
             {c}
-          </span>
+          </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 

@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen [overflow-x:clip]">
       <div
         aria-hidden="true"
         className="pb-grid pb-mask-fade pointer-events-none fixed inset-0 -z-10 opacity-70"

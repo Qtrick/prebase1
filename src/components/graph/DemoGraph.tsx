@@ -350,13 +350,14 @@ export function DemoGraph({
 
       <motion.g
         style={{
-          x: panXSpring,
-          y: panYSpring,
+          x: cameraX ?? panXSpring,
+          y: cameraY ?? panYSpring,
           scale: cameraZoom ?? zoomSpring,
           originX: `${VIEW.cx}px`,
           originY: `${VIEW.cy}px`,
         }}
       >
+
         {/* edges */}
         <g>
           {edgeList.map((e) => (

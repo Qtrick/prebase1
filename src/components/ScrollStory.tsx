@@ -78,11 +78,12 @@ const TEMPORAL_START = BOUNDS[3]!;
 /* ------------------------------------------------------------------ */
 
 const KEY_P = [0, 0.1, 0.28, 0.38, 0.47, 0.57, 0.68, 0.9, 1];
-const KEY_ZOOM = [0.95, 1.0, 1.24, 1.2, 1.2, 1.06, 1.04, 1.02, 1.0];
-const KEY_FX = [400, 400, 322, 360, 340, 400, 400, 400, 400];
-const KEY_FY = [226, 226, 214, 252, 282, 232, 226, 226, 226];
+const KEY_ZOOM = [1, 1, 1.08, 1.08, 1.08, 1.02, 1, 1, 1];
+const KEY_FX = [400, 400, 372, 388, 380, 400, 400, 400, 400];
+const KEY_FY = [226, 226, 222, 238, 250, 230, 226, 226, 226];
 /** extra left bias so the Agents panel has breathing room in the Context chapter */
-const KEY_BIAS = [0, 0, 0, -20, -50, -18, 0, 0, 0];
+const KEY_BIAS = [0, 0, 0, -10, -22, -8, 0, 0, 0];
+
 
 const KEY_X = KEY_FX.map((fx, i) => (VIEW.cx - fx) * KEY_ZOOM[i]! + KEY_BIAS[i]!);
 const KEY_Y = KEY_FY.map((fy, i) => (VIEW.cy - fy) * KEY_ZOOM[i]!);
@@ -162,10 +163,11 @@ export function ScrollStory() {
   const group: Group = CHAPTERS[chapter]!.group;
   const mode: GraphMode = group === "temporal" ? "temporal" : "network";
   const temporal = mode === "temporal";
-  // Spatial continuity: the layout is settled well before Temporal begins and
-  // never changes again, so nodes stay exactly where the visitor last saw them.
-  const layout: LayoutMode = chapter === 0 ? "organic" : "constellation";
+  // Spatial continuity: one settled layout for the whole guided story, so nodes
+  // never re-flow mid-scroll and stay exactly where the visitor last saw them.
+  const layout: LayoutMode = "constellation";
   const agentOn = chapter === 2;
+
 
   const selected = userSelected ?? (agentOn ? "graph" : null);
   const context = agentOn && selected ? contextFor(selected) : null;
@@ -198,7 +200,7 @@ export function ScrollStory() {
               hovered={hovered}
               onHoverFile={setHovered}
               onSelectFile={(id) => setUserSelected(id)}
-              agents={chapter >= 2 ? agentPanel : undefined}
+              agents={agentPanel}
               agentsOpen={agentOn}
               toolbar={<TemporalToolbar commit={commit} focusChanges={focusChanges} visible={temporal} />}
               timeline={

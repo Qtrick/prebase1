@@ -1,98 +1,306 @@
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NODE_BY_ID } from "@/lib/demo-graph";
+import {
+  AGENT_MODES,
+  STREAM_CHARS_PER_TICK,
+  STREAM_INTERVAL_MS,
+  activityFor,
+  placeholderFor,
+  replyFor,
+  suggestionsFor,
+  type AgentMode,
+  type ChatMessage,
+} from "@/lib/agent-demo";
 
-const MODES = [
-  {
-    id: "Ask",
-    prompt: "What depends on this service?",
-    answer: (n: number) => `${n} connected modules`,
-  },
-  {
-    id: "Edit",
-    prompt: "Update this service and its direct dependents.",
-    answer: (n: number) => `${n} files staged for edit`,
-  },
-  {
-    id: "Agent",
-    prompt: "Trace the affected modules, make the change, and verify it.",
-    answer: (n: number) => `Plan across ${n} modules`,
-  },
-] as const;
+let uid = 0;
+const nextId = () => `m${++uid}`;
 
 export function AgentsPanel({
   contextIds,
   selected,
   active = false,
   compact = false,
+  chat = false,
 }: {
   contextIds: string[] | null;
   selected: string | null;
   active?: boolean;
   compact?: boolean;
+  /** enable the functional deterministic chat demo */
+  chat?: boolean;
 }) {
-  const [tab, setTab] = useState<(typeof MODES)[number]["id"]>("Ask");
-  const mode = MODES.find((m) => m.id === tab)!;
+  const reduce = useReducedMotion();
+  const [mode, setMode] = useState<AgentMode>("Ask");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [draft, setDraft] = useState("");
+  const [activity, setActivity] = useState<string | null>(null);
+  const [streaming, setStreaming] = useState(false);
+
   const ids = contextIds ?? [];
   const related = ids.filter((id) => id !== selected);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // --- cancellation -------------------------------------------------------
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const runId = useRef(0);
+  const cancel = () => {
+    runId.current += 1;
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setActivity(null);
+    setStreaming(false);
+  };
+  const later = (fn: () => void, ms: number) => {
+    timers.current.push(setTimeout(fn, ms));
+  };
+
+  // Cancel in-flight streaming when the context or mode changes, or on unmount.
+  useEffect(() => cancel, []);
+  useEffect(() => {
+    cancel();
+  }, [selected, mode]);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, activity]);
+
+  function send(text: string) {
+    const value = text.trim();
+    if (!value || streaming) return;
+    cancel();
+    const run = runId.current;
+
+    setMessages((m) => [...m, { id: nextId(), role: "user", text: value }]);
+    setDraft("");
+
+    const steps = activityFor(mode, selected);
+    const answer = replyFor(mode, selected, value);
+
+    if (reduce) {
+      setActivity(steps[0] ?? null);
+      later(() => {
+        if (run !== runId.current) return;
+        setActivity(null);
+        setMessages((m) => [...m, { id: nextId(), role: "agent", text: answer }]);
+      }, 220);
+      return;
+    }
+
+    steps.forEach((s, i) => {
+      later(() => {
+        if (run !== runId.current) return;
+        setActivity(s);
+      }, i * 260);
+    });
+
+    later(
+      () => {
+        if (run !== runId.current) return;
+        setActivity(null);
+        setStreaming(true);
+        const id = nextId();
+        setMessages((m) => [...m, { id, role: "agent", text: "" }]);
+        let i = 0;
+        const tick = () => {
+          if (run !== runId.current) return;
+          i = Math.min(answer.length, i + STREAM_CHARS_PER_TICK);
+          const slice = answer.slice(0, i);
+          setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: slice } : msg)));
+          if (i < answer.length) later(tick, STREAM_INTERVAL_MS);
+          else setStreaming(false);
+        };
+        tick();
+      },
+      steps.length * 260 + 120,
+    );
+  }
+
+  const suggestions = suggestionsFor(selected);
 
   return (
-    <div className="text-[11px]">
+    <div className="flex h-full min-h-0 flex-col text-[11px]">
       <p className="pb-3 text-[10px] tracking-[0.14em] text-muted-foreground">AGENTS</p>
       <div className="flex gap-1 text-[10px]" role="group" aria-label="Agent mode">
-        {MODES.map((m) => (
+        {AGENT_MODES.map((m) => (
           <button
-            key={m.id}
+            key={m}
             type="button"
-            aria-pressed={tab === m.id}
-            onClick={() => setTab(m.id)}
+            aria-pressed={mode === m}
+            onClick={() => setMode(m)}
             className={
               "cursor-pointer rounded border px-1.5 py-1 transition-colors duration-150 " +
-              (tab === m.id
+              (mode === m
                 ? "border-teal/30 bg-teal/10 text-teal"
                 : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground")
             }
           >
-            {m.id}
+            {m}
           </button>
         ))}
       </div>
 
-      <motion.div animate={{ opacity: active ? 1 : 0.45 }} transition={{ duration: 0.4 }} className="mt-3 space-y-2">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${tab}-${selected ?? "none"}`}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            className="space-y-2"
-          >
-            <div className="flex items-center gap-1.5 font-mono text-[10px] text-teal">
-              <span className="inline-block size-1.5 rounded-full bg-teal" />
-              {ids.length ? "Context ready" : "No context"}
+      <motion.div
+        animate={{ opacity: active || chat ? 1 : 0.45 }}
+        transition={{ duration: 0.4 }}
+        className="mt-3 flex min-h-0 flex-1 flex-col gap-2"
+      >
+        <div className="flex items-center gap-1.5 font-mono text-[10px] text-teal">
+          <span className="inline-block size-1.5 rounded-full bg-teal" />
+          {ids.length || selected ? "Context ready" : "No context"}
+        </div>
+        {selected && (
+          <p className="font-mono text-[10px] text-muted-foreground">
+            {NODE_BY_ID[selected]?.label} · +{related.length} connected files
+          </p>
+        )}
+
+        {!chat ? (
+          <StaticPreview mode={mode} count={related.length} compact={compact} related={related} />
+        ) : (
+          <>
+            <div
+              ref={scrollRef}
+              className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-0.5"
+            >
+              {messages.length === 0 && (
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  {selected
+                    ? "This file and its relationships are loaded as context. Ask something."
+                    : "Select a file in the graph to load it as context."}
+                </p>
+              )}
+              {messages.map((m) =>
+                m.role === "user" ? (
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="ml-4 rounded-md border border-border bg-surface-2 px-2 py-1.5 text-foreground/90"
+                  >
+                    {m.text}
+                  </motion.div>
+                ) : (
+                  <div
+                    key={m.id}
+                    className="whitespace-pre-line rounded-md border border-teal/25 bg-teal/[0.07] px-2 py-1.5 leading-relaxed text-teal"
+                  >
+                    {m.text}
+                    {streaming && m.text.length > 0 && (
+                      <span className="pb-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-teal" />
+                    )}
+                  </div>
+                ),
+              )}
+              <AnimatePresence>
+                {activity && (
+                  <motion.p
+                    key={activity}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="font-mono text-[10px] text-muted-foreground"
+                  >
+                    {activity}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
-            {selected && (
-              <p className="font-mono text-[10px] text-muted-foreground">
-                {NODE_BY_ID[selected]?.label} · +{related.length} connected files
-              </p>
-            )}
-            <div className="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-foreground/85">
-              {mode.prompt}
+
+            <div className="flex flex-wrap gap-1">
+              {suggestions.slice(0, 3).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={streaming}
+                  onClick={() => send(s)}
+                  className="cursor-pointer rounded border border-border bg-surface-2/70 px-1.5 py-1 text-left text-[10px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-40"
+                >
+                  {s}
+                </button>
+              ))}
             </div>
-            <div className="rounded-md border border-teal/25 bg-teal/[0.07] px-2 py-1.5 font-mono text-teal">
-              {mode.answer(related.length)}
-            </div>
-            {!compact && (
-              <ul className="space-y-1 pl-1 font-mono text-[10px] text-muted-foreground">
-                {related.slice(0, 5).map((id) => (
-                  <li key={id}>{NODE_BY_ID[id]?.label}</li>
-                ))}
-              </ul>
-            )}
-          </motion.div>
-        </AnimatePresence>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                send(draft);
+              }}
+              className="flex items-end gap-1 rounded-md border border-border bg-surface-2 p-1"
+            >
+              <label className="sr-only" htmlFor="pb-agent-input">
+                Message the agent
+              </label>
+              <textarea
+                id="pb-agent-input"
+                rows={1}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send(draft);
+                  }
+                }}
+                placeholder={placeholderFor(selected)}
+                className="max-h-20 min-h-[26px] flex-1 resize-none bg-transparent px-1 py-1 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/70"
+              />
+              <button
+                type="submit"
+                aria-label="Send message"
+                disabled={!draft.trim() || streaming}
+                className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded border border-teal/30 bg-teal/10 text-teal transition-colors hover:bg-teal/20 disabled:cursor-default disabled:opacity-35"
+              >
+                ↑
+              </button>
+            </form>
+          </>
+        )}
       </motion.div>
+    </div>
+  );
+}
+
+function StaticPreview({
+  mode,
+  count,
+  compact,
+  related,
+}: {
+  mode: AgentMode;
+  count: number;
+  compact: boolean;
+  related: string[];
+}) {
+  const prompt =
+    mode === "Ask"
+      ? "What depends on this service?"
+      : mode === "Edit"
+        ? "Update this service and its direct dependents."
+        : "Trace the affected modules, make the change, and verify it.";
+  const answer =
+    mode === "Ask"
+      ? `${count} connected modules`
+      : mode === "Edit"
+        ? `${count} files staged for edit`
+        : `Plan across ${count} modules`;
+  return (
+    <div className="space-y-2">
+      <div className="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-foreground/85">
+        {prompt}
+      </div>
+      <div className="rounded-md border border-teal/25 bg-teal/[0.07] px-2 py-1.5 font-mono text-teal">
+        {answer}
+      </div>
+      {!compact && (
+        <ul className="space-y-1 pl-1 font-mono text-[10px] text-muted-foreground">
+          {related.slice(0, 5).map((id) => (
+            <li key={id}>{NODE_BY_ID[id]?.label}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

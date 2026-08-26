@@ -58,10 +58,10 @@ export function ProductStory() {
         </Reveal>
 
         {/* Desktop: sticky visual + scrolling copy */}
-        <div className="mt-12 hidden gap-14 lg:grid lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="mt-12 hidden gap-12 lg:grid lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="relative">
             <div className="sticky top-24">
-              <IdeFrame state={active} />
+              <IdeFrame state={active} dense />
             </div>
           </div>
           <div>

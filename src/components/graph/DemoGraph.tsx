@@ -176,10 +176,14 @@ export function DemoGraph({
 
   const contextSet = useMemo(() => new Set(agentContext ?? []), [agentContext]);
   const active = hovered ?? selected;
+  // Hover should identify a node without re-animating the opacity of the
+  // entire graph. Relationship dimming is reserved for the stable, clicked
+  // selection so moving across nodes cannot flash every edge and node.
+  const emphasisTarget = selected;
   const activeSet = useMemo(() => {
-    if (!active) return null;
-    return new Set([active, ...(NEIGHBORS[active] ?? [])]);
-  }, [active]);
+    if (!emphasisTarget) return null;
+    return new Set([emphasisTarget, ...(NEIGHBORS[emphasisTarget] ?? [])]);
+  }, [emphasisTarget]);
 
   const changedSet = useMemo(() => {
     if (mode !== "temporal") return null;
@@ -193,7 +197,7 @@ export function DemoGraph({
 
   function emphasis(id: string): number {
     if (contextSet.size) return contextSet.has(id) ? 1 : 0.18;
-    if (activeSet) return id === active ? 1 : activeSet.has(id) ? 0.85 : 0.22;
+    if (activeSet) return id === emphasisTarget ? 1 : activeSet.has(id) ? 0.85 : 0.22;
     if (mode === "temporal" && focusChanges && changedSet) {
       return changedSet.has(id) ? 1 : 0.16;
     }

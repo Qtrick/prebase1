@@ -166,6 +166,7 @@ export function ScrollStory() {
                     ? "context ready"
                     : "indexed"
               }
+              parallax={false}
             >
               <DemoGraph
                 className="absolute inset-0 size-full"

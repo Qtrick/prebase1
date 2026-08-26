@@ -247,7 +247,7 @@ function RuntimePreview() {
 /** A fictional local application rendered inside the preview. */
 function MiniApp() {
   return (
-    <div className="h-full overflow-hidden p-2.5 text-foreground">
+    <div className="flex h-full flex-col overflow-hidden p-2.5 text-foreground">
       <div className="flex items-center justify-between border-b border-border/70 pb-1.5">
         <span className="text-[11px] font-medium">Project Atlas</span>
         <nav className="flex gap-2 text-[9px] text-muted-foreground">
@@ -269,18 +269,18 @@ function MiniApp() {
           </div>
         ))}
       </div>
-      <div className="mt-2 flex items-end gap-1">
+      <div className="mt-2 flex min-h-0 flex-1 items-end gap-1">
         {[40, 62, 34, 78, 55, 88, 47].map((h, i) => (
           <span
             key={i}
-            style={{ height: `${h * 0.32}px` }}
+            style={{ height: `${h}%` }}
             className="w-full rounded-sm bg-teal/45"
           />
         ))}
       </div>
       <button
         type="button"
-        className="mt-2 w-full rounded bg-primary py-1 text-[9px] font-medium text-primary-foreground"
+        className="mt-2 w-full shrink-0 rounded bg-primary py-1 text-[9px] font-medium text-primary-foreground"
       >
         Deploy preview
       </button>

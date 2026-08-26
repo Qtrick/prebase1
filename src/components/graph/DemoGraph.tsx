@@ -6,7 +6,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   COMMITS,
   EDGES,
@@ -90,6 +90,9 @@ export function DemoGraph({
   labelAll = false,
 }: DemoGraphProps) {
   const reduce = useReducedMotion();
+  const instanceId = useId().replace(/:/g, "");
+  const haloId = `pb-halo-${instanceId}`;
+  const arrowId = `pb-arrow-${instanceId}`;
   const svgRef = useRef<SVGSVGElement>(null);
   const [offsets, setOffsets] = useState<Record<string, { x: number; y: number }>>({});
   const [tip, setTip] = useState<string | null>(null);
@@ -175,7 +178,10 @@ export function DemoGraph({
   );
 
   const contextSet = useMemo(() => new Set(agentContext ?? []), [agentContext]);
-  const active = hovered ?? selected;
+  // Hover is deliberately local to the node under the pointer. Using it as
+  // the graph-wide active state makes every label, edge and halo restart as
+  // the cursor crosses hit areas, which reads as a full-canvas flicker.
+  const active = selected;
   // Hover should identify a node without re-animating the opacity of the
   // entire graph. Relationship dimming is reserved for the stable, clicked
   // selection so moving across nodes cannot flash every edge and node.
@@ -301,9 +307,13 @@ export function DemoGraph({
     setPanning(false);
   }
 
-  const spring = reduce
-    ? { duration: 0.001 }
-    : ({ type: "spring", stiffness: 120, damping: 22, mass: 0.8 } as const);
+  const spring = useMemo(
+    () =>
+      reduce
+        ? { duration: 0.001 }
+        : ({ type: "spring", stiffness: 120, damping: 22, mass: 0.8 } as const),
+    [reduce],
+  );
 
   const edgeList = useMemo(
     () =>
@@ -335,12 +345,12 @@ export function DemoGraph({
 
     >
       <defs>
-        <radialGradient id="pb-halo" cx="50%" cy="50%" r="50%">
+        <radialGradient id={haloId} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="oklch(0.78 0.11 190)" stopOpacity="0.26" />
           <stop offset="100%" stopColor="oklch(0.78 0.11 190)" stopOpacity="0" />
         </radialGradient>
         <marker
-          id="pb-arrow"
+          id={arrowId}
           viewBox="0 0 8 8"
           refX="7"
           refY="4"
@@ -375,6 +385,7 @@ export function DemoGraph({
               commit={commit}
               emphasis={Math.min(emphasis(e.a), emphasis(e.b))}
               directional={Boolean(active && (e.a === active || e.b === active))}
+              markerId={arrowId}
               reveal={reveal}
               spring={spring}
               visible={present(NODE_BY_ID[e.a]!) && present(NODE_BY_ID[e.b]!)}
@@ -389,7 +400,7 @@ export function DemoGraph({
             animate={{ opacity: 1, x: posOf(active).x, y: posOf(active).y }}
             transition={{ duration: reduce ? 0 : 0.4 }}
           >
-            <circle cx={0} cy={0} r={78} fill="url(#pb-halo)" />
+            <circle cx={0} cy={0} r={78} fill={`url(#${haloId})`} />
           </motion.g>
         )}
 
@@ -448,6 +459,7 @@ function Edge({
   commit,
   emphasis,
   directional,
+  markerId,
   reveal,
   spring,
   visible,
@@ -460,6 +472,7 @@ function Edge({
   commit: number;
   emphasis: number;
   directional: boolean;
+  markerId: string;
   reveal?: MotionValue<number> | undefined;
   spring: object;
   visible: boolean;
@@ -504,7 +517,7 @@ function Edge({
         x2={pb.x}
         y2={pb.y}
         strokeWidth={directional ? 1.5 : 1}
-        markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : ""}
+        markerEnd={directional && emphasis === 1 ? `url(#${markerId})` : ""}
       />
     </motion.g>
   );

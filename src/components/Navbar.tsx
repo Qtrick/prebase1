@@ -31,7 +31,14 @@ export function Navbar() {
         aria-label="Primary"
         className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:px-8"
       >
-        <a href="#top" className="flex items-center gap-2.5">
+        <a
+          href="#top"
+          onClick={(event) => {
+            event.preventDefault();
+            jumpToSection("top");
+          }}
+          className="flex items-center gap-2.5"
+        >
           <img
             src={logo.url}
             alt=""

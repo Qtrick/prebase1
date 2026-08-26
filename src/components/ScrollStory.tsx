@@ -16,7 +16,7 @@ import {
   TemporalToolbar,
 } from "@/components/ide/TemporalControls";
 import { COMMITS, VIEW, contextFor, diffCounts, type LayoutMode } from "@/lib/demo-graph";
-import { STORY_BOUNDS } from "@/lib/journey";
+import { STORY_BOUNDS, useJourneyJump } from "@/lib/journey";
 
 /**
  * The guided story is a single state machine driven exclusively by scroll.

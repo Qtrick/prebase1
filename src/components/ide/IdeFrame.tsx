@@ -187,15 +187,17 @@ export function IdeFrame({
         }
         className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]"
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{
-            background:
-              "radial-gradient(135px circle at var(--mx) var(--my), oklch(1 0 0 / 5.5%), transparent 70%)",
-          }}
+        {parallax && !reduce && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(135px circle at var(--mx) var(--my), oklch(1 0 0 / 5.5%), transparent 70%)",
+            }}
+          />
+        )}
 
-        />
 
         {/* title bar */}
         <div className="flex shrink-0 items-center gap-3 border-b border-border bg-surface-2/70 px-3 py-2">

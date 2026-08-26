@@ -95,26 +95,9 @@ function Panel({ cap }: { cap: Cap }) {
     );
   }
   if (cap === "Runtime Preview") {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
-          <span className="rounded border border-border bg-background/60 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-            localhost:3000
-          </span>
-          <span className="font-mono text-[10px] text-teal">live</span>
-        </div>
-        <div className="flex flex-1 flex-col gap-2 p-4">
-          <div className="h-3 w-1/3 rounded bg-surface-3" />
-          <div className="h-2 w-2/3 rounded bg-surface-2" />
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            <div className="h-14 rounded border border-border bg-surface-2/70" />
-            <div className="h-14 rounded border border-border bg-surface-2/70" />
-            <div className="h-14 rounded border border-border bg-surface-2/70" />
-          </div>
-        </div>
-      </div>
-    );
+    return <RuntimePreview />;
   }
+
   if (cap === "Source Control") {
     return (
       <div className="grid h-full grid-cols-[150px_minmax(0,1fr)]">
@@ -166,6 +149,141 @@ function Panel({ cap }: { cap: Cap }) {
         <div className="pl-4">return link(nodes)</div>
         <div>{"}"}</div>
       </div>
+    </div>
+  );
+}
+
+const DEVICES = [
+  { id: "desktop", label: "Desktop", w: "100%" },
+  { id: "tablet", label: "Tablet", w: "62%" },
+  { id: "mobile", label: "Mobile", w: "38%" },
+] as const;
+
+function RuntimePreview() {
+  const [device, setDevice] = useState<(typeof DEVICES)[number]["id"]>("desktop");
+  const [loading, setLoading] = useState(false);
+  const width = DEVICES.find((d) => d.id === device)!.w;
+
+  function reload() {
+    setLoading(true);
+    setTimeout(() => setLoading(false), 420);
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* mini browser toolbar */}
+      <div className="flex shrink-0 items-center gap-1.5 border-b border-border bg-surface-2/50 px-2 py-1.5">
+        <div className="flex gap-0.5">
+          {[
+            { k: "back", label: "Back", glyph: "‹" },
+            { k: "forward", label: "Forward", glyph: "›" },
+            { k: "reload", label: "Reload", glyph: "⟳" },
+          ].map((b) => (
+            <button
+              key={b.k}
+              type="button"
+              aria-label={b.label}
+              title={b.label}
+              onClick={b.k === "reload" ? reload : undefined}
+              className="inline-flex size-6 cursor-pointer items-center justify-center rounded border border-transparent text-[12px] text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            >
+              {b.glyph}
+            </button>
+          ))}
+        </div>
+        <span className="min-w-0 flex-1 truncate rounded border border-border bg-background/60 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+          http://localhost:3000
+        </span>
+        <span className="hidden items-center gap-1 font-mono text-[10px] text-teal sm:flex">
+          <span className="size-1.5 rounded-full bg-success" />
+          Running
+        </span>
+        <div className="flex gap-0.5" role="group" aria-label="Preview viewport">
+          {DEVICES.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              aria-pressed={device === d.id}
+              onClick={() => setDevice(d.id)}
+              className={
+                "cursor-pointer rounded border px-1.5 py-0.5 font-mono text-[9px] transition-colors " +
+                (device === d.id
+                  ? "border-teal/40 bg-teal/10 text-teal"
+                  : "border-border text-muted-foreground hover:text-foreground")
+              }
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* rendered application viewport */}
+      <div className="flex min-h-0 flex-1 justify-center bg-background/40 p-2">
+        <motion.div
+          animate={{ width }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="relative overflow-hidden rounded-md border border-border bg-surface-2/90"
+        >
+          <AnimatePresence>
+            {loading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-10 flex items-center justify-center bg-surface-1/70 font-mono text-[10px] text-muted-foreground"
+              >
+                loading…
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <MiniApp />
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/** A fictional local application rendered inside the preview. */
+function MiniApp() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden p-2.5 text-foreground">
+      <div className="flex items-center justify-between border-b border-border/70 pb-1.5">
+        <span className="text-[11px] font-medium">Project Atlas</span>
+        <nav className="flex gap-2 text-[9px] text-muted-foreground">
+          <span className="text-teal">Overview</span>
+          <span>Activity</span>
+          <span className="hidden sm:inline">Settings</span>
+        </nav>
+      </div>
+      <p className="mt-1.5 text-[9px] text-muted-foreground">Development environment</p>
+      <div className="mt-2 grid grid-cols-3 gap-1.5">
+        {[
+          { k: "Builds", v: "128" },
+          { k: "Modules", v: "1,284" },
+          { k: "Errors", v: "0" },
+        ].map((s) => (
+          <div key={s.k} className="rounded border border-border bg-surface-1/70 p-1.5">
+            <p className="text-[8px] uppercase tracking-wide text-muted-foreground">{s.k}</p>
+            <p className="text-[12px] font-medium">{s.v}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex min-h-0 flex-1 items-end gap-1">
+        {[40, 62, 34, 78, 55, 88, 47].map((h, i) => (
+          <span
+            key={i}
+            style={{ height: `${h}%` }}
+            className="w-full rounded-sm bg-teal/45"
+          />
+        ))}
+      </div>
+      <button
+        type="button"
+        className="mt-2 w-full shrink-0 rounded bg-primary py-1 text-[9px] font-medium text-primary-foreground"
+      >
+        Deploy preview
+      </button>
     </div>
   );
 }

@@ -118,8 +118,9 @@ export function IdeFrame({
     const py = (e.clientY - rect.top) / rect.height;
     ref.current.style.setProperty("--mx", `${px * 100}%`);
     ref.current.style.setProperty("--my", `${py * 100}%`);
-    ref.current.style.setProperty("--rx", `${(0.5 - py) * 1.6}deg`);
-    ref.current.style.setProperty("--ry", `${(px - 0.5) * 2}deg`);
+    ref.current.style.setProperty("--rx", `${(0.5 - py) * 0.9}deg`);
+    ref.current.style.setProperty("--ry", `${(px - 0.5) * 1.1}deg`);
+
   }
 
   function onPointerLeave() {
@@ -156,8 +157,9 @@ export function IdeFrame({
           className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
           style={{
             background:
-              "radial-gradient(420px circle at var(--mx) var(--my), oklch(1 0 0 / 5%), transparent 65%)",
+              "radial-gradient(135px circle at var(--mx) var(--my), oklch(1 0 0 / 5.5%), transparent 70%)",
           }}
+
         />
 
         {/* title bar */}

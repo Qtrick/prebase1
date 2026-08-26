@@ -39,13 +39,20 @@ export type DemoGraphProps = {
   onHover?: ((id: string | null) => void) | undefined;
   /** ids receiving agent-context emphasis */
   agentContext?: string[] | null | undefined;
-  /** enable pointer hover / drag / wheel zoom */
-  interactive?: boolean;
-  draggable?: boolean;
+  /**
+   * Capability level:
+   *  - "none"   : purely decorative
+   *  - "select" : hover / click nodes only (guided story) — never captures wheel or pans
+   *  - "full"   : hover, click, wheel zoom, background pan, node drag (playground)
+   */
+  interactionMode?: "none" | "select" | "full";
   /** 0..1 continuous reveal used by the scroll story */
   reveal?: MotionValue<number> | undefined;
-  /** external camera zoom (scroll story) */
+  /** external camera (scroll story owns it when provided) */
   cameraZoom?: MotionValue<number> | undefined;
+  cameraX?: MotionValue<number> | undefined;
+  cameraY?: MotionValue<number> | undefined;
+
   className?: string | undefined;
   /** expose zoom controls to a parent toolbar */
   controlsRef?: React.MutableRefObject<GraphControlsApi | null>;
@@ -73,10 +80,11 @@ export function DemoGraph({
   onSelect,
   onHover,
   agentContext = null,
-  interactive = false,
-  draggable = false,
+  interactionMode = "none",
   reveal,
   cameraZoom,
+  cameraX,
+  cameraY,
   className,
   controlsRef,
   labelAll = false,
@@ -85,6 +93,13 @@ export function DemoGraph({
   const svgRef = useRef<SVGSVGElement>(null);
   const [offsets, setOffsets] = useState<Record<string, { x: number; y: number }>>({});
   const [tip, setTip] = useState<string | null>(null);
+
+  /** hover + click */
+  const interactive = interactionMode !== "none";
+  /** wheel zoom, background pan, node drag */
+  const full = interactionMode === "full";
+  const draggable = full;
+
 
   const zoomMV = useMotionValue(1);
   const panX = useMotionValue(0);
@@ -118,21 +133,24 @@ export function DemoGraph({
     };
   }, [controlsRef, onSelect, panX, panY, setZoom, zoomMV]);
 
-  // Wheel zoom / trackpad pinch — native non-passive listener.
+  // Wheel zoom / trackpad pinch — ONLY in "full" mode. In "select" mode the
+  // document keeps ownership of the wheel so page scrolling is never stolen.
   const wheelRef = useRef<(e: WheelEvent) => void>(() => {});
   wheelRef.current = (e: WheelEvent) => {
-    if (!interactive) return;
+    if (!full) return;
     e.preventDefault();
     const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
     setZoom(zoomMV.get() * Math.exp(-dy * 0.0015));
   };
   useEffect(() => {
+    if (!full) return;
     const el = svgRef.current;
     if (!el) return;
     const handler = (e: WheelEvent) => wheelRef.current(e);
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
-  }, []);
+  }, [full]);
+
 
   // Background panning
   const panState = useRef<{ id: number; x: number; y: number; ox: number; oy: number } | null>(
@@ -251,7 +269,7 @@ export function DemoGraph({
   }
 
   function onBgPointerDown(e: React.PointerEvent<SVGSVGElement>) {
-    if (!interactive || dragRef.current) return;
+    if (!full || dragRef.current) return;
     if ((e.target as Element).closest("[data-node]")) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     panState.current = {
@@ -307,9 +325,10 @@ export function DemoGraph({
       onPointerUp={onBgPointerUp}
       onPointerCancel={onBgPointerUp}
       style={{
-        cursor: interactive ? (panning ? "grabbing" : "grab") : undefined,
-        touchAction: interactive ? "pan-y" : undefined,
+        cursor: full ? (panning ? "grabbing" : "grab") : undefined,
+        touchAction: "pan-y",
       }}
+
     >
       <defs>
         <radialGradient id="pb-halo" cx="50%" cy="50%" r="50%">
@@ -331,13 +350,14 @@ export function DemoGraph({
 
       <motion.g
         style={{
-          x: panXSpring,
-          y: panYSpring,
+          x: cameraX ?? panXSpring,
+          y: cameraY ?? panYSpring,
           scale: cameraZoom ?? zoomSpring,
           originX: `${VIEW.cx}px`,
           originY: `${VIEW.cy}px`,
         }}
       >
+
         {/* edges */}
         <g>
           {edgeList.map((e) => (

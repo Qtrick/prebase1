@@ -244,21 +244,23 @@ export function GraphCanvas({
                 opacity={0}
               />
               {n.label ? (
-                <motion.text
+                <motion.g
+                  initial={false}
                   animate={{ x: x + n.r + 8, y: y + 4, opacity: opacity * 0.95 }}
-                  transition={{ duration: dur }}
-                  x={x + n.r + 8}
-                  y={y + 4}
-                  fontSize="12"
-                  fontFamily="var(--font-mono-stack)"
-                  fill={
-                    state === "agent" && !(n.focus || n.ctx)
-                      ? "oklch(0.5 0 0)"
-                      : "oklch(0.82 0 0)"
-                  }
+                  transition={{ duration: dur, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {n.label}
-                </motion.text>
+                  <text
+                    fontSize="12"
+                    fontFamily="var(--font-mono-stack)"
+                    fill={
+                      state === "agent" && !(n.focus || n.ctx)
+                        ? "oklch(0.5 0 0)"
+                        : "oklch(0.82 0 0)"
+                    }
+                  >
+                    {n.label}
+                  </text>
+                </motion.g>
               ) : null}
             </motion.g>
           );

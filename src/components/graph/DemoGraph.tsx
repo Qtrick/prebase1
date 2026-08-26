@@ -518,8 +518,8 @@ function Node({
   draggable: boolean;
   reveal?: MotionValue<number> | undefined;
   spring: object;
-  onHover?: (id: string | null) => void;
-  onSelect?: (id: string | null) => void;
+  onHover?: ((id: string | null) => void) | undefined;
+  onSelect?: ((id: string | null) => void) | undefined;
   onPointerDownNode: (e: React.PointerEvent<SVGGElement>, id: string) => void;
   onPointerMoveNode: (e: React.PointerEvent<SVGGElement>) => void;
   onPointerUpNode: (e: React.PointerEvent<SVGGElement>) => void;

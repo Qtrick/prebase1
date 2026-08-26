@@ -23,6 +23,7 @@ import {
   type DemoNode,
   type LayoutMode,
 } from "@/lib/demo-graph";
+import { resolveLabelPlacements, type LabelPlacement } from "@/lib/graph-labels";
 
 export type GraphMode = "network" | "temporal";
 
@@ -227,14 +228,79 @@ export function DemoGraph({
     return n.weight === 2 ? "oklch(0.9 0 0)" : n.weight === 1 ? "oklch(0.74 0 0)" : "oklch(0.56 0 0)";
   }
 
-  function labelVisible(n: DemoNode) {
-    if (labelAll) return true;
-    if (n.id === active) return true;
-    if (activeSet?.has(n.id)) return true;
-    if (contextSet.has(n.id)) return true;
-    if (mode === "temporal" && changedSet?.has(n.id)) return true;
-    return n.weight === 2;
-  }
+  /* ---------------------------------------------------------------- */
+  /* Collision-aware label placement (shared by story + playground)     */
+  /* ---------------------------------------------------------------- */
+
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  const FONT = narrow ? 11.5 : 12.5;
+
+  /** Lower number = resolved earlier = keeps its preferred slot. */
+  const priorityOf = useCallback(
+    (n: DemoNode) => {
+      if (n.id === selected) return 0;
+      if (contextSet.has(n.id)) return 2;
+      if (mode === "temporal" && changedSet?.has(n.id)) return 3;
+      if (activeSet?.has(n.id)) return 4;
+      if (n.weight === 2) return 5;
+      if (n.weight === 1) return 6;
+      return 7;
+    },
+    [selected, contextSet, changedSet, activeSet, mode],
+  );
+
+  const placements = useMemo(() => {
+    const candidates = NODES.filter((n) => present(n)).filter((n) => {
+      if (labelAll) return true;
+      const p = priorityOf(n);
+      return narrow ? p <= 4 : p <= 5;
+    });
+
+    const ordered = candidates
+      .map((n) => ({ n, p: priorityOf(n) }))
+      .sort((a, b) => (a.p === b.p ? a.n.id.localeCompare(b.n.id) : a.p - b.p));
+
+    const obstacles = NODES.filter((n) => present(n)).map((n) => {
+      const pos = posOf(n.id);
+      return { x: pos.x, y: pos.y, r: radiusOf(n) + 2 };
+    });
+
+    const items = ordered.map(({ n }) => {
+      const pos = posOf(n.id);
+      return {
+        id: n.id,
+        x: pos.x,
+        y: pos.y,
+        r: radiusOf(n),
+        text: mode === "temporal" ? labelAt(n, commit) : n.label,
+        fontSize: FONT,
+      };
+    });
+
+    // Hovered label is resolved last so hovering never reshuffles the graph.
+    if (hovered && !items.some((i) => i.id === hovered) && NODE_BY_ID[hovered]) {
+      const n = NODE_BY_ID[hovered]!;
+      const pos = posOf(n.id);
+      items.push({
+        id: n.id,
+        x: pos.x,
+        y: pos.y,
+        r: radiusOf(n),
+        text: mode === "temporal" ? labelAt(n, commit) : n.label,
+        fontSize: FONT,
+      });
+    }
+
+    return resolveLabelPlacements(items, obstacles, { w: VIEW.w, h: VIEW.h });
+  }, [FONT, commit, hovered, labelAll, mode, narrow, posOf, present, priorityOf]);
 
   const dragRef = useRef<{
     id: string;
@@ -430,7 +496,8 @@ export function DemoGraph({
               emphasis={emphasis(n.id)}
               visible={present(n)}
               label={mode === "temporal" ? labelAt(n, commit) : n.label}
-              showLabel={labelVisible(n)}
+              placement={placements[n.id]}
+              fontSize={FONT}
               selected={selected === n.id}
               interactive={interactive}
               draggable={draggable}
@@ -545,7 +612,8 @@ function Node({
   emphasis,
   visible,
   label,
-  showLabel,
+  placement,
+  fontSize,
   selected,
   interactive,
   draggable,
@@ -565,7 +633,8 @@ function Node({
   emphasis: number;
   visible: boolean;
   label: string;
-  showLabel: boolean;
+  placement?: LabelPlacement | undefined;
+  fontSize: number;
   selected: boolean;
   interactive: boolean;
   draggable: boolean;
@@ -623,13 +692,20 @@ function Node({
         />
         <motion.text
           initial={false}
-          animate={{ opacity: showLabel ? 0.95 : 0 }}
+          animate={{ opacity: placement ? 0.96 : 0 }}
           transition={{ duration: 0.2 }}
-          x={r + 8}
-          y={4}
-          fontSize={11.5}
+          x={placement?.dx ?? r + 8}
+          y={placement?.dy ?? 4}
+          textAnchor={placement?.anchor ?? "start"}
+          fontSize={fontSize}
           fontFamily="var(--font-mono-stack)"
-          fill={selected || hover ? "var(--teal)" : "oklch(0.84 0 0)"}
+          fill={selected || hover ? "var(--teal)" : "oklch(0.86 0 0)"}
+          stroke="var(--background)"
+          strokeWidth={2.6}
+          strokeOpacity={0.85}
+          strokeLinejoin="round"
+          paintOrder="stroke"
+          style={{ pointerEvents: "none" }}
         >
           {label}
         </motion.text>

@@ -104,8 +104,15 @@ export function jumpToSection(id: string) {
     return;
   }
 
+  // The destination's own content settles in a beat after the page arrives.
+  target.classList.remove("pb-jump-arrive");
+  void target.offsetWidth;
+  target.classList.add("pb-jump-arrive");
+  window.setTimeout(() => target.classList.remove("pb-jump-arrive"), 1400);
+
   doc.startViewTransition(jump);
 }
+
 
 export function scrollToStep(step: JourneyStep, _reduce = false) {
   const y = stepTargetY(step);

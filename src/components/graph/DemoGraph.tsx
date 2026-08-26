@@ -190,6 +190,13 @@ export function DemoGraph({
     if (!emphasisTarget) return null;
     return new Set([emphasisTarget, ...(NEIGHBORS[emphasisTarget] ?? [])]);
   }, [emphasisTarget]);
+  const haloRevealFallback = useMotionValue(1);
+  const haloReveal = useTransform(reveal ?? haloRevealFallback, (value) => {
+    if (!active) return 0;
+    const index = NODES.findIndex((node) => node.id === active);
+    const threshold = (Math.max(index, 0) / NODES.length) * 0.45;
+    return clamp((value - threshold) / 0.06, 0, 1);
+  });
 
   const changedSet = useMemo(() => {
     if (mode !== "temporal") return null;
@@ -397,14 +404,14 @@ export function DemoGraph({
         {active && (
           <g transform={`translate(${posOf(active).x} ${posOf(active).y})`}>
             <motion.circle
-              initial={reduce ? false : { opacity: 0, scale: 0.86 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={reduce ? false : { scale: 0.86 }}
+              animate={{ scale: 1 }}
               transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}
               cx={0}
               cy={0}
               r={78}
               fill={`url(#${haloId})`}
-              style={{ transformOrigin: "center" }}
+              style={{ opacity: haloReveal, transformOrigin: "center" }}
             />
           </g>
         )}

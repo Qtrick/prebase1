@@ -16,7 +16,7 @@ import {
   TemporalToolbar,
 } from "@/components/ide/TemporalControls";
 import { COMMITS, VIEW, contextFor, diffCounts, type LayoutMode } from "@/lib/demo-graph";
-import { STORY_BOUNDS } from "@/lib/journey";
+import { STORY_BOUNDS, useJourneyJump } from "@/lib/journey";
 
 /**
  * The guided story is a single state machine driven exclusively by scroll.
@@ -116,9 +116,22 @@ export function ScrollStory() {
   const entryScale = useTransform(entry, [0.25, 0.9], [reduce ? 1 : 0.985, 1]);
 
   const camSpring = reduce ? { duration: 0.001 } : { stiffness: 80, damping: 22, mass: 0.5 };
-  const cameraZoom = useSpring(useTransform(p, KEY_P, KEY_ZOOM), camSpring);
-  const cameraX = useSpring(useTransform(p, KEY_P, KEY_X), camSpring);
-  const cameraY = useSpring(useTransform(p, KEY_P, KEY_Y), camSpring);
+  const zoomTarget = useTransform(p, KEY_P, KEY_ZOOM);
+  const xTarget = useTransform(p, KEY_P, KEY_X);
+  const yTarget = useTransform(p, KEY_P, KEY_Y);
+  const cameraZoom = useSpring(zoomTarget, camSpring);
+  const cameraX = useSpring(xTarget, camSpring);
+  const cameraY = useSpring(yTarget, camSpring);
+
+  // A rail jump lands the page directly on the target chapter; snap the springs
+  // so the camera and story progress arrive with it instead of easing through
+  // every chapter in between.
+  useJourneyJump(() => {
+    p.jump(scrollYProgress.get());
+    cameraZoom.jump(zoomTarget.get());
+    cameraX.jump(xTarget.get());
+    cameraY.jump(yTarget.get());
+  });
 
   // Quantised story state — everything else is derived from these.
   const [chapter, setChapter] = useState(0);

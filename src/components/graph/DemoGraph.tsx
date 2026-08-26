@@ -23,6 +23,7 @@ import {
   type DemoNode,
   type LayoutMode,
 } from "@/lib/demo-graph";
+import { resolveLabelPlacements, type LabelPlacement } from "@/lib/graph-labels";
 
 export type GraphMode = "network" | "temporal";
 

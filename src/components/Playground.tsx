@@ -111,8 +111,8 @@ export function Playground() {
                 setContextIds(null);
               }}
               agentContext={contextIds}
-              interactive
-              draggable
+              interactionMode="full"
+
               controlsRef={controls}
             />
             <div className="pointer-events-auto absolute bottom-2 right-2 flex gap-1">

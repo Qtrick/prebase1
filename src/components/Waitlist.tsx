@@ -68,7 +68,7 @@ export function Waitlist() {
           <form
             onSubmit={onSubmit}
             noValidate
-            className="pb-shine rounded-xl border border-border bg-surface-1 p-4 text-left sm:p-5"
+            className="rounded-xl border border-border bg-surface-1 p-4 text-left sm:p-5"
           >
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1">

@@ -49,7 +49,9 @@ export function Waitlist() {
         message:
           result.reason === "invalid_email"
             ? "Enter a valid email address."
-            : "Something went wrong. Please try again.",
+            : result.reason === "not_configured"
+              ? "Waitlist signups aren't connected yet. Set VITE_WAITLIST_ENDPOINT to start collecting."
+              : "Something went wrong. Please try again.",
       });
     }
   }

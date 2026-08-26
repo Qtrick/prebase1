@@ -33,15 +33,15 @@ export const PRODUCT_JOURNEY: JourneyStep[] = [
   { id: "context", n: "03", group: "NETWORK", label: "Context", section: "product", chapter: 2 },
   { id: "history", n: "04", group: "TEMPORAL", label: "History", section: "product", chapter: 3 },
   { id: "change", n: "05", group: "TEMPORAL", label: "Change", section: "product", chapter: 4 },
-  { id: "playground", n: "06", group: "EXPLORE", label: "Playground", section: "explore", chapter: 0 },
-  { id: "editor", n: "07", group: "WORKBENCH", label: "Editor", section: "why", chapter: 0 },
-  { id: "terminal", n: "08", group: "WORKBENCH", label: "Terminal", section: "why", chapter: 1 },
-  { id: "source-control", n: "09", group: "WORKBENCH", label: "Source Control", section: "why", chapter: 2 },
-  { id: "runtime", n: "10", group: "WORKBENCH", label: "Runtime", section: "why", chapter: 3 },
-  { id: "extensions", n: "11", group: "WORKBENCH", label: "Extensions", section: "why", chapter: 4 },
+  { id: "editor", n: "06", group: "WORKBENCH", label: "Editor", section: "why", chapter: 0 },
+  { id: "terminal", n: "07", group: "WORKBENCH", label: "Terminal", section: "why", chapter: 1 },
+  { id: "source-control", n: "08", group: "WORKBENCH", label: "Source Control", section: "why", chapter: 2 },
+  { id: "runtime", n: "09", group: "WORKBENCH", label: "Runtime", section: "why", chapter: 3 },
+  { id: "extensions", n: "10", group: "WORKBENCH", label: "Extensions", section: "why", chapter: 4 },
+  { id: "playground", n: "11", group: "EXPLORE", label: "Playground", section: "explore", chapter: 0 },
 ];
 
-export const JOURNEY_GROUPS: JourneyGroup[] = ["NETWORK", "TEMPORAL", "EXPLORE", "WORKBENCH"];
+export const JOURNEY_GROUPS: JourneyGroup[] = ["NETWORK", "TEMPORAL", "WORKBENCH", "EXPLORE"];
 
 const SECTION_ID: Record<JourneySection, string> = {
   product: "product",

@@ -150,54 +150,32 @@ export function IdeStory() {
                   exit={{ opacity: 0, y: reduce ? 0 : -10 }}
                   transition={fade}
                 >
-                  <span className="font-mono text-[11px] tracking-[0.18em] text-teal">
+                  <span className="font-mono text-[11px] tracking-[0.2em] text-teal">
                     {active.n} · {active.cap.toUpperCase()}
                     {chapter === 3 && (desktop ? " · DESKTOP" : " · WEB")}
                   </span>
-                  <h3 className="mt-2 text-lg font-medium sm:text-xl">
+                  <h3 className="mt-3 text-[clamp(1.35rem,2.1vw,1.85rem)] font-medium leading-[1.15]">
                     {chapter === 3
                       ? desktop
-                        ? "Test the desktop application itself."
-                        : "Preview local web apps."
+                        ? "Verify the desktop application itself."
+                        : "Test what actually runs."
                       : active.title}
                   </h3>
-                  <p className="mt-2 max-w-md text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="mt-3 max-w-[420px] text-[15px] leading-[1.6] text-muted-foreground">
                     {chapter === 3
                       ? desktop
-                        ? "For supported Electron projects, PreBase can open a managed desktop session and give Agents runtime evidence from the application itself — renderer inspection, screenshots, process output, reload and restart."
-                        : "Run your local application inside the IDE, reload it, and inspect responsive states without leaving PreBase."
+                        ? "For supported Electron projects, PreBase can also launch a managed desktop runtime so Agents can inspect the renderer, capture screenshots, read process output, and verify the running application itself."
+                        : active.body
                       : active.body}
+                  </p>
+                  <p className="mt-4 font-mono text-[11px] leading-[1.5] text-muted-foreground/60">
+                    {active.meta}
                   </p>
                 </motion.div>
               </AnimatePresence>
             </div>
           </div>
         </div>
-
-        {/* chapter rail, large screens only */}
-        <nav
-          aria-label="IDE story progress"
-          className="pointer-events-none absolute left-4 top-1/2 hidden -translate-y-1/2 flex-col gap-2 xl:flex"
-        >
-          {CAPS.map((c, i) => (
-            <span
-              key={c.n}
-              aria-current={chapter === i ? "step" : undefined}
-              className={
-                "flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] transition-colors duration-300 " +
-                (chapter === i ? "text-teal" : "text-muted-foreground/40")
-              }
-            >
-              <span
-                className={
-                  "inline-block h-px transition-all duration-300 " +
-                  (chapter === i ? "w-4 bg-teal" : "w-2 bg-muted-foreground/30")
-                }
-              />
-              {c.n} {c.nav.toUpperCase()}
-            </span>
-          ))}
-        </nav>
       </div>
     </section>
   );

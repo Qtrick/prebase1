@@ -54,6 +54,10 @@ export function Navbar() {
             <a
               key={l.href}
               href={l.href}
+              onClick={(event) => {
+                event.preventDefault();
+                jumpToSection(l.href.slice(1));
+              }}
               className="group relative hidden px-1 py-1 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground sm:block"
             >
               {l.label}

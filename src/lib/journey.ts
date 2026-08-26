@@ -76,6 +76,37 @@ export function stepTargetY(step: JourneyStep): number | null {
  */
 export const JOURNEY_JUMP_EVENT = "journey:jump";
 
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (update: () => void) => { finished: Promise<void> };
+};
+
+/**
+ * Move between distant page sections without visibly scrubbing every sticky
+ * story in between. Supporting browsers crossfade the current and destination
+ * view; reduced-motion and older browsers use the same direct jump without the
+ * transition.
+ */
+export function jumpToSection(id: string) {
+  const target = document.getElementById(id);
+  if (!target) return;
+
+  const jump = () => {
+    const top = target.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+    window.scrollTo({ top: Math.max(0, top), behavior: "instant" as ScrollBehavior });
+    window.history.pushState(null, "", `#${id}`);
+    window.dispatchEvent(new CustomEvent(JOURNEY_JUMP_EVENT));
+  };
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const doc = document as ViewTransitionDocument;
+  if (reduce || !doc.startViewTransition) {
+    jump();
+    return;
+  }
+
+  doc.startViewTransition(jump);
+}
+
 export function scrollToStep(step: JourneyStep, _reduce = false) {
   const y = stepTargetY(step);
   if (y == null) return;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import logo from "@/assets/prebase-icon.png.asset.json";
+import { jumpToSection } from "@/lib/journey";
 
 const LINKS = [
   { href: "#product", label: "Product" },
@@ -54,6 +55,10 @@ export function Navbar() {
           ))}
           <a
             href="#waitlist"
+            onClick={(event) => {
+              event.preventDefault();
+              jumpToSection("waitlist");
+            }}
             className="pb-shine inline-flex items-center rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
           >
             Join Waitlist

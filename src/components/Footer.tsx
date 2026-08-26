@@ -1,4 +1,5 @@
 import logo from "@/assets/prebase-icon.png.asset.json";
+import { jumpToSection } from "@/lib/journey";
 
 export function Footer() {
   return (
@@ -21,7 +22,14 @@ export function Footer() {
           <a href="#product" className="transition-colors hover:text-foreground">
             Product
           </a>
-          <a href="#waitlist" className="transition-colors hover:text-foreground">
+          <a
+            href="#waitlist"
+            onClick={(event) => {
+              event.preventDefault();
+              jumpToSection("waitlist");
+            }}
+            className="transition-colors hover:text-foreground"
+          >
             Waitlist
           </a>
           <span className="text-muted-foreground/60">© PreBase</span>

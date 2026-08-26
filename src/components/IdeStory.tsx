@@ -1,57 +1,58 @@
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { PRODUCT_JOURNEY, WORKBENCH_BOUNDS, scrollToStep } from "@/lib/journey";
 
 /**
- * "Still an IDE." — the second, calmer scroll story.
+ * "Still an IDE." — the workbench story.
  *
- * One sticky IDE surface. Scroll owns the active capability: the tab strip is a
- * read-only status indicator, exactly like the guided Network/Temporal switch.
- * Runtime Preview gets extra scroll distance because it contains two sub-stages
- * (Web Runtime, then a managed Electron desktop session).
+ * One sticky workbench shell. Scroll owns the active capability; the tab strip
+ * navigates by scrolling to a chapter's real story position, so the tab state
+ * is always derived from scroll rather than set independently.
  */
 
 type Cap = "Editor" | "Terminal" | "Source Control" | "Runtime Preview" | "Extensions";
 
-const CAPS: Array<{ n: string; cap: Cap; nav: string; title: string; body: string }> = [
+const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: string }> = [
   {
-    n: "01",
+    n: "07",
     cap: "Editor",
-    nav: "Editor",
-    title: "Write code without leaving the map.",
-    body: "Edit files in the same Code-OSS-based workspace where PreBase already understands their relationships.",
+    title: "Move from the map into the code.",
+    body: "Open a node from the Code Graph and work in the corresponding file without leaving the workspace. The structural context that helped you find the code stays part of the same PreBase session.",
+    meta: "Code-OSS editor · graph-to-file navigation",
   },
   {
-    n: "02",
+    n: "08",
     cap: "Terminal",
-    nav: "Terminal",
-    title: "Run the project where you work.",
-    body: "Use the integrated terminal and project tasks without leaving the workspace.",
+    title: "Run what you're building.",
+    body: "Use the integrated terminal for development servers, tests, build commands, and project tasks while the rest of the workspace stays in context.",
+    meta: "Integrated shell · project tasks · test output",
   },
   {
-    n: "03",
+    n: "09",
     cap: "Source Control",
-    nav: "Source Control",
-    title: "See the change before you ship it.",
-    body: "Review files, diffs, and source-control state inside the same workspace.",
+    title: "Review the change in context.",
+    body: "Inspect modified files and diffs without leaving the environment where PreBase already understands the surrounding system.",
+    meta: "Git state · file diffs · repository context",
   },
   {
-    n: "04",
+    n: "10",
     cap: "Runtime Preview",
-    nav: "Runtime",
-    title: "Test beyond the browser.",
-    body: "Runtime Preview runs local web applications, and PreBase can also launch and inspect supported Electron desktop applications so Agents verify the running renderer instead of relying only on terminal output.",
+    title: "Test what actually runs.",
+    body: "Preview supported local web applications directly in the workspace and inspect responsive states without switching to another tool.",
+    meta: "Web runtime · Electron runtime · Agent evidence",
   },
   {
-    n: "05",
+    n: "11",
     cap: "Extensions",
-    nav: "Extensions",
-    title: "Keep the tools you already use.",
-    body: "PreBase keeps the Code-OSS extension model, so familiar development tooling stays part of the workspace.",
+    title: "Keep the tools around the workflow.",
+    body: "PreBase is built on the Code-OSS workbench, so familiar development extensions remain part of the environment instead of forcing a separate toolchain.",
+    meta: "Code-OSS extension model",
   },
 ];
 
 const CAP_LIST: Cap[] = CAPS.map((c) => c.cap);
-const BOUNDS = [0, 0.16, 0.32, 0.48, 0.78, 1];
+const BOUNDS = WORKBENCH_BOUNDS;
+const WORKBENCH_STEPS = PRODUCT_JOURNEY.filter((s) => s.section === "why");
 /** inside the Runtime chapter, where the web preview hands over to desktop */
 const DESKTOP_START = 0.62;
 

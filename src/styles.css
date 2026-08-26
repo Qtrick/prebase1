@@ -177,17 +177,23 @@
 @keyframes page-jump-arrive {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .pb-jump-arrive > * > * {
   animation: page-jump-arrive 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* While the destination fades in, suppress the scroll-reveal rise/blur of the
+   same elements so the two animations can't fight and shift the layout. */
+.pb-jump-arrive * {
+  transform: none !important;
+  filter: none !important;
+}
+
 
 .pb-jump-arrive > * > *:nth-child(1) {
   animation-delay: 260ms;

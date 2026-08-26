@@ -127,7 +127,7 @@ function traceAnswer(node: DemoNode, rel: string[]) {
   }
   const groups = groupByCategory(rel);
   const legs = groups
-    .map(([area, labels]) => `${labels.join(" and ")} in ${area.toLowerCase()}`)
+    .map(([area, labels]) => `${labels.length > 1 ? `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}` : labels[0]} in ${area.toLowerCase()}`)
     .join(", then ");
   return `Starting at ${node.label}, PreBase reaches ${legs}.\nThose edges define the immediate path an Agent would inspect before expanding farther out.`;
 }

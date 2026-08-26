@@ -690,15 +690,35 @@ function Node({
           strokeWidth={1.4}
           opacity={0}
         />
+        {placement?.leader && (
+          <motion.line
+            initial={false}
+            animate={{ opacity: placement ? 0.35 : 0 }}
+            transition={{ duration: 0.2 }}
+            x1={Math.sign(placement.dx || 1) * r}
+            y1={0}
+            x2={placement.dx * 0.92}
+            y2={placement.dy - fontSize * 0.32}
+            stroke="oklch(0.7 0 0)"
+            strokeWidth={0.7}
+          />
+        )}
         <motion.text
           initial={false}
-          animate={{ opacity: showLabel ? 0.95 : 0 }}
+          animate={{ opacity: placement ? 0.96 : 0 }}
           transition={{ duration: 0.2 }}
-          x={r + 8}
-          y={4}
-          fontSize={11.5}
+          x={placement?.dx ?? r + 8}
+          y={placement?.dy ?? 4}
+          textAnchor={placement?.anchor ?? "start"}
+          fontSize={fontSize}
           fontFamily="var(--font-mono-stack)"
-          fill={selected || hover ? "var(--teal)" : "oklch(0.84 0 0)"}
+          fill={selected || hover ? "var(--teal)" : "oklch(0.86 0 0)"}
+          stroke="var(--background)"
+          strokeWidth={2.6}
+          strokeOpacity={0.85}
+          strokeLinejoin="round"
+          paintOrder="stroke"
+          style={{ pointerEvents: "none" }}
         >
           {label}
         </motion.text>

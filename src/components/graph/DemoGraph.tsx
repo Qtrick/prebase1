@@ -395,13 +395,18 @@ export function DemoGraph({
 
         {/* soft focus halo behind the active node */}
         {active && (
-          <motion.g
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, x: posOf(active).x, y: posOf(active).y }}
-            transition={{ duration: reduce ? 0 : 0.4 }}
-          >
-            <circle cx={0} cy={0} r={78} fill={`url(#${haloId})`} />
-          </motion.g>
+          <g transform={`translate(${posOf(active).x} ${posOf(active).y})`}>
+            <motion.circle
+              initial={reduce ? false : { opacity: 0, scale: 0.86 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}
+              cx={0}
+              cy={0}
+              r={78}
+              fill={`url(#${haloId})`}
+              style={{ transformOrigin: "center" }}
+            />
+          </g>
         )}
 
 

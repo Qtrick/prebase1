@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from "motion/react";
+import { jumpToSection } from "@/lib/journey";
 
 export function Hero() {
   const reduce = useReducedMotion();
@@ -45,6 +46,10 @@ export function Hero() {
           >
             <a
               href="#waitlist"
+              onClick={(event) => {
+                event.preventDefault();
+                jumpToSection("waitlist");
+              }}
               className="pb-shine group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
             >
               Join the Waitlist

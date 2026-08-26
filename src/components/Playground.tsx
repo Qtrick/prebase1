@@ -44,7 +44,7 @@ export function Playground() {
 
   return (
     <section id="explore" className="relative mt-20 scroll-mt-24 sm:mt-24">
-      <div className="mx-auto max-w-[1120px] px-5 sm:px-8 xl:pl-[168px]">
+      <div className="mx-auto max-w-[1240px] px-5 sm:px-8 xl:pl-[176px]">
         <Reveal>
           <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">
             EXPLORE

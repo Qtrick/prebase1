@@ -90,7 +90,7 @@ export function IdeStory() {
       className="relative mt-28 h-[300vh] sm:mt-36 lg:h-[360vh]"
     >
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
-        <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-8 xl:pl-[168px]">
+        <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 xl:pl-[176px]">
           <header className="flex flex-col gap-4 pb-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div className="min-w-0">
               <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">

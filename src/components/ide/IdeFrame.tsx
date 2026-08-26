@@ -281,19 +281,23 @@ export function IdeFrame({
             </div>
           </div>
 
-          {/* agents panel — overlays the workspace so the graph never reflows */}
+          {/* agents panel — always mounted, slides over the workspace so the graph never reflows */}
           {agents && (
             <motion.aside
-              initial={false}
+              initial={{ x: 272, opacity: 0 }}
               animate={{
                 x: agentsOpen ? 0 : 272,
                 opacity: agentsOpen ? 1 : 0,
               }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              aria-hidden={!agentsOpen}
-              style={{ pointerEvents: agentsOpen ? "auto" : "none" }}
+              transition={
+                reduce
+                  ? { duration: 0.001 }
+                  : { type: "spring", stiffness: 180, damping: 28, mass: 0.8 }
+              }
+              inert={!agentsOpen}
+              style={{ pointerEvents: agentsOpen ? "auto" : "none", willChange: "transform" }}
               className={
-                "absolute inset-y-0 right-0 z-20 hidden w-[264px] min-h-0 overflow-hidden border-l border-border bg-surface-1/95 backdrop-blur-sm " +
+                "absolute inset-y-0 right-0 z-20 hidden w-[264px] min-h-0 overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm " +
                 (agentsWide ? "2xl:block" : "lg:block")
               }
             >
@@ -302,6 +306,7 @@ export function IdeFrame({
               </div>
             </motion.aside>
           )}
+
         </div>
       </div>
     </motion.div>

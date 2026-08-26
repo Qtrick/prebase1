@@ -228,14 +228,79 @@ export function DemoGraph({
     return n.weight === 2 ? "oklch(0.9 0 0)" : n.weight === 1 ? "oklch(0.74 0 0)" : "oklch(0.56 0 0)";
   }
 
-  function labelVisible(n: DemoNode) {
-    if (labelAll) return true;
-    if (n.id === active) return true;
-    if (activeSet?.has(n.id)) return true;
-    if (contextSet.has(n.id)) return true;
-    if (mode === "temporal" && changedSet?.has(n.id)) return true;
-    return n.weight === 2;
-  }
+  /* ---------------------------------------------------------------- */
+  /* Collision-aware label placement (shared by story + playground)     */
+  /* ---------------------------------------------------------------- */
+
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  const FONT = narrow ? 11.5 : 12.5;
+
+  /** Lower number = resolved earlier = keeps its preferred slot. */
+  const priorityOf = useCallback(
+    (n: DemoNode) => {
+      if (n.id === selected) return 0;
+      if (contextSet.has(n.id)) return 2;
+      if (mode === "temporal" && changedSet?.has(n.id)) return 3;
+      if (activeSet?.has(n.id)) return 4;
+      if (n.weight === 2) return 5;
+      if (n.weight === 1) return 6;
+      return 7;
+    },
+    [selected, contextSet, changedSet, activeSet, mode],
+  );
+
+  const placements = useMemo(() => {
+    const candidates = NODES.filter((n) => present(n)).filter((n) => {
+      if (labelAll) return true;
+      const p = priorityOf(n);
+      return narrow ? p <= 4 : p <= 5;
+    });
+
+    const ordered = candidates
+      .map((n) => ({ n, p: priorityOf(n) }))
+      .sort((a, b) => (a.p === b.p ? a.n.id.localeCompare(b.n.id) : a.p - b.p));
+
+    const obstacles = NODES.filter((n) => present(n)).map((n) => {
+      const pos = posOf(n.id);
+      return { x: pos.x, y: pos.y, r: radiusOf(n) + 2 };
+    });
+
+    const items = ordered.map(({ n }) => {
+      const pos = posOf(n.id);
+      return {
+        id: n.id,
+        x: pos.x,
+        y: pos.y,
+        r: radiusOf(n),
+        text: mode === "temporal" ? labelAt(n, commit) : n.label,
+        fontSize: FONT,
+      };
+    });
+
+    // Hovered label is resolved last so hovering never reshuffles the graph.
+    if (hovered && !items.some((i) => i.id === hovered) && NODE_BY_ID[hovered]) {
+      const n = NODE_BY_ID[hovered]!;
+      const pos = posOf(n.id);
+      items.push({
+        id: n.id,
+        x: pos.x,
+        y: pos.y,
+        r: radiusOf(n),
+        text: mode === "temporal" ? labelAt(n, commit) : n.label,
+        fontSize: FONT,
+      });
+    }
+
+    return resolveLabelPlacements(items, obstacles, { w: VIEW.w, h: VIEW.h });
+  }, [FONT, commit, hovered, labelAll, mode, narrow, posOf, present, priorityOf]);
 
   const dragRef = useRef<{
     id: string;

@@ -483,25 +483,28 @@ function Edge({
   }
 
   return (
-    <motion.line
-      animate={{
-        x1: pa.x,
-        y1: pa.y,
-        x2: pb.x,
-        y2: pb.y,
-        opacity: visible ? emphasis * (mode === "temporal" ? 0.75 : 0.9) : 0,
-        stroke,
-      }}
-      transition={spring}
-      x1={pa.x}
-      y1={pa.y}
-      x2={pb.x}
-      y2={pb.y}
-      strokeWidth={directional ? 1.5 : 1}
-      markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : ""}
-      style={reveal ? { opacity: revealOpacity } : {}}
-    />
+    <motion.g style={{ opacity: revealOpacity }}>
+      <motion.line
+        animate={{
+          x1: pa.x,
+          y1: pa.y,
+          x2: pb.x,
+          y2: pb.y,
+          opacity: visible ? emphasis * (mode === "temporal" ? 0.75 : 0.9) : 0,
+          stroke,
+        }}
+        transition={spring}
+        initial={false}
+        x1={pa.x}
+        y1={pa.y}
+        x2={pb.x}
+        y2={pb.y}
+        strokeWidth={directional ? 1.5 : 1}
+        markerEnd={directional && emphasis === 1 ? "url(#pb-arrow)" : ""}
+      />
+    </motion.g>
   );
+
 }
 
 function Node({

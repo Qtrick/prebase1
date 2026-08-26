@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
-import { ProductStory } from "@/components/ProductStory";
+import { ScrollStory } from "@/components/ScrollStory";
+import { Playground } from "@/components/Playground";
+import { ScrollProgress } from "@/components/ScrollProgress";
 import { IdeStrip } from "@/components/IdeStrip";
 import { Waitlist } from "@/components/Waitlist";
 import { Footer } from "@/components/Footer";
@@ -31,11 +33,12 @@ function Index() {
         aria-hidden="true"
         className="pb-grid pb-mask-fade pointer-events-none fixed inset-0 -z-10 opacity-70"
       />
+      <ScrollProgress />
       <Navbar />
       <main>
-        
         <Hero />
-        <ProductStory />
+        <ScrollStory />
+        <Playground />
         <IdeStrip />
         <Waitlist />
       </main>

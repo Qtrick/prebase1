@@ -3,6 +3,7 @@ import logo from "@/assets/prebase-icon.png.asset.json";
 
 const LINKS = [
   { href: "#product", label: "Product" },
+  { href: "#explore", label: "Explore" },
   { href: "#why", label: "Why PreBase" },
 ];
 

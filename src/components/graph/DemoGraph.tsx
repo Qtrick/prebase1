@@ -80,10 +80,11 @@ export function DemoGraph({
   onSelect,
   onHover,
   agentContext = null,
-  interactive = false,
-  draggable = false,
+  interactionMode = "none",
   reveal,
   cameraZoom,
+  cameraX,
+  cameraY,
   className,
   controlsRef,
   labelAll = false,
@@ -92,6 +93,13 @@ export function DemoGraph({
   const svgRef = useRef<SVGSVGElement>(null);
   const [offsets, setOffsets] = useState<Record<string, { x: number; y: number }>>({});
   const [tip, setTip] = useState<string | null>(null);
+
+  /** hover + click */
+  const interactive = interactionMode !== "none";
+  /** wheel zoom, background pan, node drag */
+  const full = interactionMode === "full";
+  const draggable = full;
+
 
   const zoomMV = useMotionValue(1);
   const panX = useMotionValue(0);

@@ -106,14 +106,14 @@ export function TemporalTimeline({
           </button>
         )}
         <div className="relative flex min-w-0 flex-1 items-center">
-          <div className="absolute inset-x-1 h-px bg-border-strong" aria-hidden="true" />
+          <div className="absolute inset-x-1 top-[5px] h-px bg-border-strong" aria-hidden="true" />
           <motion.div
-            className="absolute left-1 h-px bg-teal"
+            className="absolute left-1 top-[5px] h-px bg-teal"
             animate={{ width: `${(commit / (COMMITS.length - 1)) * 100}%` }}
             transition={{ duration: 0.4 }}
             aria-hidden="true"
           />
-          <div className="relative flex w-full justify-between">
+          <div className="relative flex w-full items-start justify-between">
             {COMMITS.map((c, i) => {
               const on = i === commit;
               return (

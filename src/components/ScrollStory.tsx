@@ -74,7 +74,7 @@ export function ScrollStory() {
       return l === next ? l : next;
     });
     setMode((m) => {
-      const next: GraphMode = v >= 0.46 ? "temporal" : "network";
+      const next: GraphMode = v >= 0.46 && v < 0.755 ? "temporal" : "network";
       return m === next ? m : next;
     });
     const c = Math.max(
@@ -99,7 +99,7 @@ export function ScrollStory() {
   return (
     <section id="product" ref={ref} className="relative mt-24 h-[340vh] sm:mt-32 lg:h-[420vh]">
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
-        <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-10">
+        <div className="mx-auto grid w-full max-w-6xl gap-4 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_270px] lg:items-center lg:gap-8">
           {/* product canvas */}
           <div className="order-2 min-h-0 lg:order-1 lg:h-[min(64vh,560px)]">
             <IdeFrame

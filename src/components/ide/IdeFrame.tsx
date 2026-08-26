@@ -283,12 +283,17 @@ export function IdeFrame({
           {agents && (
             <motion.aside
               initial={false}
-              animate={{ width: agentsOpen ? 264 : 0, opacity: agentsOpen ? 1 : 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              animate={{
+                width: agentsOpen ? 264 : 0,
+                opacity: agentsOpen ? 1 : 0,
+                borderLeftWidth: agentsOpen ? 1 : 0,
+              }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className={
                 "hidden min-h-0 shrink-0 overflow-hidden border-l border-border bg-surface-1/80 " +
                 (agentsWide ? "2xl:block" : "lg:block")
               }
+
             >
               <div className="flex h-full min-h-0 w-[264px] flex-col overflow-hidden p-3.5 pb-4">
                 {agents}

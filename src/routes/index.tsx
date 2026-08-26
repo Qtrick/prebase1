@@ -40,8 +40,8 @@ function Index() {
       <main>
         <Hero />
         <ScrollStory />
-        <Playground />
         <IdeStory />
+        <Playground />
         <Waitlist />
       </main>
       <Footer />

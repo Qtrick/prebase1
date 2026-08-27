@@ -1,13 +1,13 @@
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { PRODUCT_JOURNEY, WORKBENCH_BOUNDS, scrollToStep } from "@/lib/journey";
+import { WORKBENCH_BOUNDS } from "@/lib/journey";
 
 /**
  * "Still an IDE." — the workbench story.
  *
- * One sticky workbench shell. Scroll owns the active capability; the tab strip
- * navigates by scrolling to a chapter's real story position, so the tab state
- * is always derived from scroll rather than set independently.
+ * One sticky workbench shell. Scroll owns the active capability; the header
+ * progress indicator and the journey rail only reflect the scroll-derived
+ * chapter rather than setting it independently.
  */
 
 type Cap = "Editor" | "Terminal" | "Source Control" | "Runtime Preview" | "Extensions";

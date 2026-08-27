@@ -224,6 +224,17 @@ export function Playground() {
                 )}
               </AnimatePresence>
             </div>
+            <div className="rounded-xl border border-border bg-surface-1 p-3 sm:col-span-2 lg:col-span-1">
+              <div className="flex h-[280px] flex-col">
+                <AgentsPanel
+                  contextIds={contextIds ?? (selected ? contextFor(selected) : null)}
+                  selected={selected}
+                  chat
+                  variant="explore"
+                />
+              </div>
+            </div>
+
             <p className="font-mono text-[10px] text-muted-foreground/70 sm:col-span-2 lg:col-span-1">
               Interactive PreBase model · illustrative data
             </p>

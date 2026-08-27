@@ -88,6 +88,19 @@ export function suggestionsFor(id: string | null, mode: AgentMode = "Ask"): stri
   return [`What depends on ${label}?`, "Trace its relationships", "What changes if I edit this?"];
 }
 
+/** Explore-specific suggestions, different from the guided story set. */
+export function exploreSuggestionsFor(id: string | null): string[] {
+  if (!id) {
+    return ["What is the Code Graph?", "How do layouts work?", "What can the Agent do?"];
+  }
+  const label = NODE_BY_ID[id]?.label ?? id;
+  return [
+    `Explain what ${label} does`,
+    `Find usages of ${label}`,
+    `Trace paths from ${label} to the entry point`,
+  ];
+}
+
 /** Short pre-response activity steps, mode aware. */
 export function activityFor(mode: AgentMode, id: string | null): string[] {
   const n = NEIGHBORS[id ?? ""]?.length ?? 0;

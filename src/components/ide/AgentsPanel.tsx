@@ -6,6 +6,7 @@ import {
   STREAM_CHARS_PER_TICK,
   STREAM_INTERVAL_MS,
   activityFor,
+  exploreSuggestionsFor,
   replyFor,
   suggestionsFor,
   type AgentMode,
@@ -21,6 +22,7 @@ export function AgentsPanel({
   active = false,
   compact = false,
   chat = false,
+  variant = "guided",
 }: {
   contextIds: string[] | null;
   selected: string | null;
@@ -28,6 +30,8 @@ export function AgentsPanel({
   compact?: boolean;
   /** enable the functional deterministic chat demo */
   chat?: boolean;
+  /** which suggestion set to show in chat mode */
+  variant?: "guided" | "explore";
 }) {
   const reduce = useReducedMotion();
   const [mode, setMode] = useState<AgentMode>("Ask");
@@ -120,10 +124,17 @@ export function AgentsPanel({
     );
   }
 
-  const allSuggestions = suggestionsFor(selected, mode);
-  const [questionIndex] = useState(() =>
-    Math.max(0, Math.floor(Math.random() * allSuggestions.length)),
-  );
+  const allSuggestions =
+    variant === "explore" ? exploreSuggestionsFor(selected) : suggestionsFor(selected, mode);
+  const [questionIndex, setQuestionIndex] = useState(0);
+
+  // Randomize the suggested question once after hydration so server and client
+  // render match on the first paint, avoiding a hydration mismatch.
+  useEffect(() => {
+    setQuestionIndex(Math.max(0, Math.floor(Math.random() * allSuggestions.length)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const question = allSuggestions[questionIndex] ?? allSuggestions[0] ?? "Ask about this file";
 
   return (

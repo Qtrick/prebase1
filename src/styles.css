@@ -212,8 +212,8 @@
 /* Faint technical grid used behind the page. */
 @utility pb-grid {
   background-image:
-    linear-gradient(to right, oklch(1 0 0 / 3.5%) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 3.5%) 1px, transparent 1px);
+    linear-gradient(to right, oklch(1 0 0 / 6%) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 6%) 1px, transparent 1px);
   background-size: 64px 64px;
 }
 

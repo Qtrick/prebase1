@@ -1,7 +1,21 @@
 import { motion, useReducedMotion } from "motion/react";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NODES } from "@/lib/demo-graph";
 import type { GraphMode } from "@/components/graph/DemoGraph";
+
+/** Small SSR-safe media query hook used for responsive IDE chrome sizing. */
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const update = () => setMatches(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, [query]);
+  return matches;
+}
+
 
 /** Files shown in the "PreBase Maps" explorer, derived from the demo model. */
 const EXPLORER: Array<{ id?: string; name: string; depth: number; dir?: boolean }> = [

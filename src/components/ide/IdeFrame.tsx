@@ -239,10 +239,11 @@ export function IdeFrame({
               initial={false}
               animate={{
                 opacity: 1 - explorerDim * 0.85,
-                // On smaller screens the explorer yields to the agents panel so
-                // the graph keeps meaningful width instead of being squeezed.
+                // The explorer yields to the agents panel except on very wide
+                // screens so the graph keeps meaningful width instead of being
+                // squeezed between two sidebars.
                 width:
-                  explorerDim > 0.5 || (agentsOpen && agents && !wideExplorer)
+                  explorerDim > 0.5 || (agentsOpen && agents && !xlUp)
                     ? 0
                     : wideExplorer
                       ? 208

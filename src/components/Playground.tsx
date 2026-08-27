@@ -224,9 +224,10 @@ export function Playground() {
                 )}
               </AnimatePresence>
             </div>
-            <p className="font-mono text-[10px] text-muted-foreground/70">
+            <p className="font-mono text-[10px] text-muted-foreground/70 sm:col-span-2 lg:col-span-1">
               Interactive PreBase model · illustrative data
             </p>
+
           </div>
         </div>
       </div>

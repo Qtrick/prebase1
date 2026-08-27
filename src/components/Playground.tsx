@@ -154,7 +154,7 @@ export function Playground() {
               <div
                 role="group"
                 aria-label="Network layout"
-                className="mt-2 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:flex-wrap lg:overflow-visible"
+                className="mt-2 flex flex-wrap gap-1.5"
               >
                 {LAYOUTS.map((l) => (
                   <button

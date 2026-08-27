@@ -103,7 +103,7 @@ export function IdeStory() {
                 the project, review changes, test applications, and work with agents.
               </p>
             </div>
-            <CapabilityStrip active={active.cap} />
+            <CapabilityStrip active={active.cap} chapter={chapter} />
           </header>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-10">

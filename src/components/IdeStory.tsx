@@ -183,38 +183,29 @@ export function IdeStory() {
 /**
  * Read-only progress indicator: the journey rail already handles navigation,
  * so this only reflects which capability the scroll position is showing.
+ * The design avoids segments or pills that could be mistaken for tabs/buttons.
  */
 function CapabilityStrip({ active, chapter }: { active: Cap; chapter: number }) {
   const reduce = useReducedMotion();
+  const progress = ((chapter + 1) / CAPS.length) * 100;
   return (
-    <div className="flex shrink-0 items-center gap-3" aria-hidden="true">
-      <div className="flex gap-1">
-        {CAP_LIST.map((c, i) => (
-          <motion.span
-            key={c}
-            className="h-[3px] w-6 rounded-full sm:w-8"
-            initial={false}
-            animate={{
-              backgroundColor:
-                i <= chapter ? "var(--teal)" : "var(--border)",
-              opacity: i === chapter ? 1 : i < chapter ? 0.55 : 0.7,
-            }}
-            transition={reduce ? { duration: 0 } : { duration: 0.35, ease: "easeOut" }}
-          />
-        ))}
-      </div>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={active}
-          initial={{ opacity: 0, y: reduce ? 0 : 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: reduce ? 0 : -4 }}
-          transition={reduce ? { duration: 0 } : { duration: 0.25 }}
-          className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
-        >
+    <div className="flex shrink-0 flex-col items-end gap-2" aria-hidden="true">
+      <div className="flex items-baseline gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {active}
-        </motion.span>
-      </AnimatePresence>
+        </span>
+        <span className="font-mono text-[10px] tabular-nums text-muted-foreground/50">
+          {String(chapter + 1).padStart(2, "0")} / {String(CAPS.length).padStart(2, "0")}
+        </span>
+      </div>
+      <div className="h-[2px] w-24 overflow-hidden rounded-full bg-border sm:w-32">
+        <motion.div
+          className="h-full bg-teal"
+          initial={false}
+          animate={{ width: `${progress}%` }}
+          transition={reduce ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
     </div>
   );
 }

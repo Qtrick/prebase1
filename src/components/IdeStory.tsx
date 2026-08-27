@@ -1,13 +1,13 @@
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { PRODUCT_JOURNEY, WORKBENCH_BOUNDS, scrollToStep } from "@/lib/journey";
+import { WORKBENCH_BOUNDS } from "@/lib/journey";
 
 /**
  * "Still an IDE." — the workbench story.
  *
- * One sticky workbench shell. Scroll owns the active capability; the tab strip
- * navigates by scrolling to a chapter's real story position, so the tab state
- * is always derived from scroll rather than set independently.
+ * One sticky workbench shell. Scroll owns the active capability; the header
+ * progress indicator and the journey rail only reflect the scroll-derived
+ * chapter rather than setting it independently.
  */
 
 type Cap = "Editor" | "Terminal" | "Source Control" | "Runtime Preview" | "Extensions";
@@ -52,7 +52,6 @@ const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: stri
 
 const CAP_LIST: Cap[] = CAPS.map((c) => c.cap);
 const BOUNDS = WORKBENCH_BOUNDS;
-const WORKBENCH_STEPS = PRODUCT_JOURNEY.filter((s) => s.section === "why");
 /** inside the Runtime chapter, where the web preview hands over to desktop */
 const DESKTOP_START = 0.56;
 
@@ -103,7 +102,7 @@ export function IdeStory() {
                 the project, review changes, test applications, and work with agents.
               </p>
             </div>
-            <CapabilityStrip active={active.cap} />
+            <CapabilityStrip active={active.cap} chapter={chapter} />
           </header>
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-10">
@@ -182,52 +181,41 @@ export function IdeStory() {
 }
 
 /**
- * Navigation, not state: a click scrolls to the chapter's real story position
- * and the active tab is then derived from scroll like everything else.
+ * Read-only progress indicator: the journey rail already handles navigation,
+ * so this only reflects which capability the scroll position is showing.
  */
-function CapabilityStrip({ active }: { active: Cap }) {
+function CapabilityStrip({ active, chapter }: { active: Cap; chapter: number }) {
   const reduce = useReducedMotion();
-  const wrap = useRef<HTMLDivElement>(null);
-  const activeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const el = activeRef.current;
-    const box = wrap.current;
-    if (!el || !box || box.scrollWidth <= box.clientWidth) return;
-    box.scrollTo({
-      left: el.offsetLeft - box.clientWidth / 2 + el.offsetWidth / 2,
-      behavior: reduce ? "auto" : "smooth",
-    });
-  }, [active, reduce]);
-
   return (
-    <nav
-      ref={wrap}
-      aria-label="Workbench capabilities"
-      className="-mx-5 flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
-    >
-      {CAP_LIST.map((c, i) => {
-        const on = c === active;
-        const step = WORKBENCH_STEPS[i]!;
-        return (
-          <button
+    <div className="flex shrink-0 items-center gap-3" aria-hidden="true">
+      <div className="flex gap-1">
+        {CAP_LIST.map((c, i) => (
+          <motion.span
             key={c}
-            ref={on ? activeRef : undefined}
-            type="button"
-            aria-current={on ? "step" : undefined}
-            onClick={() => scrollToStep(step, Boolean(reduce))}
-            className={
-              "relative min-h-11 shrink-0 cursor-pointer rounded-md border px-3 py-2 font-mono text-[11px] transition-colors duration-200 " +
-              (on
-                ? "border-teal/40 bg-teal/10 text-teal"
-                : "border-border bg-surface-2/40 text-muted-foreground hover:border-border-strong hover:text-foreground")
-            }
-          >
-            {c}
-          </button>
-        );
-      })}
-    </nav>
+            className="h-[3px] w-6 rounded-full sm:w-8"
+            initial={false}
+            animate={{
+              backgroundColor:
+                i <= chapter ? "var(--teal)" : "var(--border)",
+              opacity: i === chapter ? 1 : i < chapter ? 0.55 : 0.7,
+            }}
+            transition={reduce ? { duration: 0 } : { duration: 0.35, ease: "easeOut" }}
+          />
+        ))}
+      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={active}
+          initial={{ opacity: 0, y: reduce ? 0 : 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduce ? 0 : -4 }}
+          transition={reduce ? { duration: 0 } : { duration: 0.25 }}
+          className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          {active}
+        </motion.span>
+      </AnimatePresence>
+    </div>
   );
 }
 

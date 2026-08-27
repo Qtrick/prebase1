@@ -239,7 +239,14 @@ export function IdeFrame({
               initial={false}
               animate={{
                 opacity: 1 - explorerDim * 0.85,
-                width: explorerDim > 0.5 ? 0 : wideExplorer ? 208 : 156,
+                // On smaller screens the explorer yields to the agents panel so
+                // the graph keeps meaningful width instead of being squeezed.
+                width:
+                  explorerDim > 0.5 || (agentsOpen && agents && !wideExplorer)
+                    ? 0
+                    : wideExplorer
+                      ? 208
+                      : 156,
               }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="hidden shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 sm:block"

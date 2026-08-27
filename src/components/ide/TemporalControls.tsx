@@ -141,10 +141,15 @@ export function TemporalTimeline({
             {playing ? "❚❚" : "▶"}
           </button>
         )}
-        <div className="relative flex min-w-0 flex-1 items-center">
-          <div className="absolute inset-x-1 top-[5px] h-px bg-border-strong" aria-hidden="true" />
+        <div ref={trackRef} className="relative flex min-w-0 flex-1 items-center">
+          <div
+            className="absolute top-[5px] h-px bg-border-strong"
+            style={{ left: edges.left, right: edges.right }}
+            aria-hidden="true"
+          />
           <motion.div
-            className="absolute left-1 top-[5px] h-px bg-teal"
+            className="absolute top-[5px] h-px bg-teal"
+            style={{ left: edges.left }}
             animate={{ width: `${(commit / (COMMITS.length - 1)) * 100}%` }}
             transition={{ duration: 0.4 }}
             aria-hidden="true"

@@ -289,7 +289,16 @@ export function IdeFrame({
           )}
 
           {/* graph workspace */}
-          <div className="relative flex min-w-0 flex-1 flex-col">
+          <motion.div
+            initial={false}
+            animate={{ marginRight: agents && agentsOpen ? agentsWidth : 0 }}
+            transition={
+              reduce
+                ? { duration: 0.001 }
+                : { type: "spring", stiffness: 180, damping: 28, mass: 0.8 }
+            }
+            className="relative flex min-w-0 flex-1 flex-col"
+          >
             <div className="flex shrink-0 items-center gap-1 border-b border-border bg-surface-2/40 px-2 py-1.5 text-[11px]">
               <span className="rounded-t-sm px-2 py-1 text-muted-foreground">Welcome</span>
               <span className="rounded-sm border border-border bg-surface-1 px-2 py-1 text-foreground">

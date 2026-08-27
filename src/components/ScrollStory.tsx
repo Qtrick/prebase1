@@ -277,7 +277,7 @@ export function ScrollStory() {
                   }
                   className="overflow-hidden"
                 >
-                  <div className="max-h-[24svh] overflow-hidden rounded-xl border border-border bg-surface-1 p-3.5">
+                  <div className="mb-8 max-h-[30svh] overflow-y-auto rounded-xl border border-border bg-surface-1 p-3.5">
                     {agentPanel}
                   </div>
                 </motion.div>

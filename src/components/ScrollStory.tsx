@@ -262,7 +262,7 @@ export function ScrollStory() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="order-3 max-h-[38svh] overflow-hidden rounded-xl border border-border bg-surface-1 p-3.5 lg:hidden"
+              className="order-3 max-h-[38svh] overflow-hidden rounded-xl border border-border bg-surface-1 p-3.5 sm:hidden"
             >
               {agentPanel}
             </motion.div>

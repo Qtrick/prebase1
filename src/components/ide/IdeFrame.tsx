@@ -312,7 +312,7 @@ export function IdeFrame({
               <span>{statusLeft ?? `${NODES.length} nodes · 23 edges`}</span>
               <span className="text-teal">{statusRight ?? "indexed"}</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* agents panel — always mounted, slides over the workspace so the graph never reflows */}
           {agents && (

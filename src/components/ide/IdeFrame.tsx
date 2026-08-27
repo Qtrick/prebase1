@@ -160,6 +160,10 @@ export function IdeFrame({
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const wideExplorer = useMediaQuery("(min-width: 1024px)");
+  const smUp = useMediaQuery("(min-width: 640px)");
+  const xlUp = useMediaQuery("(min-width: 1280px)");
+  // Panel width must match the aside classes below so the workspace can make room.
+  const agentsWidth = !smUp ? 0 : xlUp ? 264 : wideExplorer ? 240 : 196;
 
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -285,7 +289,16 @@ export function IdeFrame({
           )}
 
           {/* graph workspace */}
-          <div className="relative flex min-w-0 flex-1 flex-col">
+          <motion.div
+            initial={false}
+            animate={{ marginRight: agents && agentsOpen ? agentsWidth : 0 }}
+            transition={
+              reduce
+                ? { duration: 0.001 }
+                : { type: "spring", stiffness: 180, damping: 28, mass: 0.8 }
+            }
+            className="relative flex min-w-0 flex-1 flex-col"
+          >
             <div className="flex shrink-0 items-center gap-1 border-b border-border bg-surface-2/40 px-2 py-1.5 text-[11px]">
               <span className="rounded-t-sm px-2 py-1 text-muted-foreground">Welcome</span>
               <span className="rounded-sm border border-border bg-surface-1 px-2 py-1 text-foreground">
@@ -299,7 +312,7 @@ export function IdeFrame({
               <span>{statusLeft ?? `${NODES.length} nodes · 23 edges`}</span>
               <span className="text-teal">{statusRight ?? "indexed"}</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* agents panel — always mounted, slides over the workspace so the graph never reflows */}
           {agents && (

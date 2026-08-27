@@ -22,6 +22,7 @@ export function AgentsPanel({
   active = false,
   compact = false,
   chat = false,
+  variant = "guided",
 }: {
   contextIds: string[] | null;
   selected: string | null;
@@ -29,6 +30,8 @@ export function AgentsPanel({
   compact?: boolean;
   /** enable the functional deterministic chat demo */
   chat?: boolean;
+  /** which suggestion set to show in chat mode */
+  variant?: "guided" | "explore";
 }) {
   const reduce = useReducedMotion();
   const [mode, setMode] = useState<AgentMode>("Ask");

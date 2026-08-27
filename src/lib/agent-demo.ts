@@ -116,27 +116,27 @@ export function placeholderFor(id: string | null) {
 
 function dependencyAnswer(node: DemoNode, rel: string[]) {
   if (rel.length === 0) {
-    return `${node.label} has no direct relationships in this illustrative model — nothing else in the map connects to it yet.`;
+    return `${node.label} has no direct relationships in this illustrative model. Nothing else in the map connects to it yet.`;
   }
-  return `${node.label} is directly connected to ${rel.length} ${plural(rel.length, "module", "modules")} in this model: ${list(rel)}.\nThese are the files PreBase surfaces first when inspecting its immediate relationship scope.`;
+  return `${node.label} is directly connected to ${rel.length} ${plural(rel.length, "module", "modules")}: ${list(rel)}.\nThose are the files PreBase surfaces first.`;
 }
 
 function traceAnswer(node: DemoNode, rel: string[]) {
   if (rel.length === 0) {
-    return `Starting at ${node.label} (${node.path}), the trace ends immediately — this node sits on the edge of the illustrative model.`;
+    return `Starting at ${node.label} (${node.path}), the trace ends immediately. This node sits on the edge of the illustrative model.`;
   }
   const groups = groupByCategory(rel);
   const legs = groups
     .map(([area, labels]) => `${labels.length > 1 ? `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}` : labels[0]} in ${area.toLowerCase()}`)
     .join(", then ");
-  return `Starting at ${node.label}, PreBase reaches ${legs}.\nThose edges define the immediate path an Agent would inspect before expanding farther out.`;
+  return `Starting at ${node.label}, PreBase reaches ${legs}.\nThose edges are the first path an agent would follow.`;
 }
 
 function impactAnswer(node: DemoNode, rel: string[]) {
   if (rel.length === 0) {
     return `Editing ${node.label} has no connected modules in this model, so the verification scope is the file itself.`;
   }
-  return `Editing ${node.label} puts its ${rel.length} directly connected ${plural(rel.length, "module", "modules")} inside the first verification scope: ${list(rel)}.\nEverything outside that set stays untouched, so the blast radius is visible before you start.`;
+  return `Editing ${node.label} affects ${rel.length} directly connected ${plural(rel.length, "module", "modules")}: ${list(rel)}.\nThat gives you the first verification scope before you edit.`;
 }
 
 function verifyAnswer(node: DemoNode, rel: string[]) {
@@ -153,19 +153,19 @@ export function replyFor(mode: AgentMode, id: string | null, prompt: string): st
   const rel = id ? (NEIGHBORS[id] ?? []) : [];
 
   if (!node) {
-    return "Select a file in the graph and I'll use it — plus everything it connects to — as context.";
+    return "Select a file in the graph and I'll use it, along with its connected files, as context.";
   }
 
   const intent = classifyPromptIntent(prompt);
 
   if (mode === "Edit") {
     if (intent === "impact" || intent === "dependency") {
-      return `Change scope for ${node.label}: the file itself, then its ${rel.length} direct ${plural(rel.length, "dependent", "dependents")} — ${list(rel)}. Nothing else is staged.`;
+      return `Change scope for ${node.label}: the file itself and its ${rel.length} direct ${plural(rel.length, "dependent", "dependents")}: ${list(rel)}. Nothing else is staged.`;
     }
     if (intent === "relationship_trace") {
-      return `Before editing, I'd walk ${node.label} → ${list(rel)} so the edit follows real edges rather than filename guesses.`;
+      return `Before editing, I'd walk ${node.label} → ${list(rel)} so the edit follows real edges, not filename guesses.`;
     }
-    return `I'd update ${node.label} first, then verify the ${rel.length} directly connected ${plural(rel.length, "module", "modules")}: ${list(rel)}. Unrelated graph nodes stay outside the change scope.`;
+    return `I'd update ${node.label} first, then verify the ${rel.length} connected ${plural(rel.length, "module", "modules")}: ${list(rel)}. Nothing else is staged.`;
   }
 
   if (mode === "Agent") {

@@ -1,12 +1,11 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NEIGHBORS, NODE_BY_ID } from "@/lib/demo-graph";
 import {
   AGENT_MODES,
   STREAM_CHARS_PER_TICK,
   STREAM_INTERVAL_MS,
   activityFor,
-  placeholderFor,
   replyFor,
   suggestionsFor,
   type AgentMode,
@@ -15,9 +14,6 @@ import {
 
 let uid = 0;
 const nextId = () => `m${++uid}`;
-
-const COMPOSER_MIN = 38;
-const COMPOSER_MAX = 96;
 
 export function AgentsPanel({
   contextIds,
@@ -34,10 +30,8 @@ export function AgentsPanel({
   chat?: boolean;
 }) {
   const reduce = useReducedMotion();
-  const inputId = `pb-agent-input-${useId()}`;
   const [mode, setMode] = useState<AgentMode>("Ask");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [draft, setDraft] = useState("");
   const [activity, setActivity] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
 
@@ -46,7 +40,6 @@ export function AgentsPanel({
   const ids = contextIds ?? (selected ? NEIGHBORS[selected] ?? [] : []);
   const related = ids.filter((id) => id !== selected);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const taRef = useRef<HTMLTextAreaElement>(null);
   const pinned = useRef(true);
 
   // --- cancellation -------------------------------------------------------
@@ -75,16 +68,6 @@ export function AgentsPanel({
     const el = scrollRef.current;
     if (el && pinned.current) el.scrollTop = el.scrollHeight;
   }, [messages, activity]);
-
-  /** Autosize the composer between MIN and MAX, then scroll internally. */
-  const autosize = () => {
-    const el = taRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(COMPOSER_MAX, Math.max(COMPOSER_MIN, el.scrollHeight))}px`;
-  };
-  useLayoutEffect(autosize, [draft]);
-  useLayoutEffect(autosize, [selected]);
 
   function send(text: string) {
     const value = text.trim();

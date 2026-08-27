@@ -568,7 +568,7 @@ function Edge({
     [0, 1],
   );
 
-  let stroke = "oklch(1 0 0 / 16%)";
+  let stroke = "var(--graph-edge)";
   if (mode === "temporal") {
     const sa = statusAt(na, commit);
     const sb = statusAt(nb, commit);
@@ -747,7 +747,7 @@ function Tooltip({
         height={38}
         rx={5}
         fill="oklch(0.18 0 0 / 96%)"
-        stroke="oklch(1 0 0 / 16%)"
+        stroke="var(--graph-edge)"
       />
       <text x={x + 10} y={16} fontSize={11} fontFamily="var(--font-mono-stack)" fill="oklch(0.95 0 0)">
         {node.label}

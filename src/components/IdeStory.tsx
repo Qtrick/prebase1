@@ -182,52 +182,41 @@ export function IdeStory() {
 }
 
 /**
- * Navigation, not state: a click scrolls to the chapter's real story position
- * and the active tab is then derived from scroll like everything else.
+ * Read-only progress indicator: the journey rail already handles navigation,
+ * so this only reflects which capability the scroll position is showing.
  */
-function CapabilityStrip({ active }: { active: Cap }) {
+function CapabilityStrip({ active, chapter }: { active: Cap; chapter: number }) {
   const reduce = useReducedMotion();
-  const wrap = useRef<HTMLDivElement>(null);
-  const activeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const el = activeRef.current;
-    const box = wrap.current;
-    if (!el || !box || box.scrollWidth <= box.clientWidth) return;
-    box.scrollTo({
-      left: el.offsetLeft - box.clientWidth / 2 + el.offsetWidth / 2,
-      behavior: reduce ? "auto" : "smooth",
-    });
-  }, [active, reduce]);
-
   return (
-    <nav
-      ref={wrap}
-      aria-label="Workbench capabilities"
-      className="-mx-5 flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
-    >
-      {CAP_LIST.map((c, i) => {
-        const on = c === active;
-        const step = WORKBENCH_STEPS[i]!;
-        return (
-          <button
+    <div className="flex shrink-0 items-center gap-3" aria-hidden="true">
+      <div className="flex gap-1">
+        {CAP_LIST.map((c, i) => (
+          <motion.span
             key={c}
-            ref={on ? activeRef : undefined}
-            type="button"
-            aria-current={on ? "step" : undefined}
-            onClick={() => scrollToStep(step, Boolean(reduce))}
-            className={
-              "relative min-h-11 shrink-0 cursor-pointer rounded-md border px-3 py-2 font-mono text-[11px] transition-colors duration-200 " +
-              (on
-                ? "border-teal/40 bg-teal/10 text-teal"
-                : "border-border bg-surface-2/40 text-muted-foreground hover:border-border-strong hover:text-foreground")
-            }
-          >
-            {c}
-          </button>
-        );
-      })}
-    </nav>
+            className="h-[3px] w-6 rounded-full sm:w-8"
+            initial={false}
+            animate={{
+              backgroundColor:
+                i <= chapter ? "hsl(var(--teal))" : "hsl(var(--border))",
+              opacity: i === chapter ? 1 : i < chapter ? 0.55 : 0.5,
+            }}
+            transition={reduce ? { duration: 0 } : { duration: 0.35, ease: "easeOut" }}
+          />
+        ))}
+      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={active}
+          initial={{ opacity: 0, y: reduce ? 0 : 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduce ? 0 : -4 }}
+          transition={reduce ? { duration: 0 } : { duration: 0.25 }}
+          className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          {active}
+        </motion.span>
+      </AnimatePresence>
+    </div>
   );
 }
 

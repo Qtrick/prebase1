@@ -71,7 +71,7 @@ export function Navbar() {
               event.preventDefault();
               jumpToSection("waitlist");
             }}
-            className="pb-shine inline-flex items-center rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
+            className="inline-flex items-center rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
           >
             Join Waitlist
           </a>

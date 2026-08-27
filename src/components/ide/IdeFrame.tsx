@@ -317,9 +317,10 @@ export function IdeFrame({
               inert={!agentsOpen}
               style={{ pointerEvents: agentsOpen ? "auto" : "none", willChange: "transform" }}
               className={
-                "absolute inset-y-0 right-0 z-20 hidden min-h-0 w-[212px] overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:w-[264px] " +
-                (agentsWide ? "xl:block" : "md:block")
+                "absolute inset-y-0 right-0 z-20 hidden min-h-0 w-[196px] overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm sm:block lg:w-[240px] xl:w-[264px] " +
+                (agentsWide ? "" : "")
               }
+
             >
               <div className="flex h-full min-h-0 w-full flex-col overflow-hidden p-3 pb-4 lg:p-3.5">
                 {agents}

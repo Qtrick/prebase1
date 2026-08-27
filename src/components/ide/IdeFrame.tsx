@@ -213,7 +213,7 @@ export function IdeFrame({
             className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             style={{
               background:
-                "radial-gradient(135px circle at var(--mx) var(--my), oklch(1 0 0 / 5.5%), transparent 70%)",
+                "radial-gradient(135px circle at var(--mx) var(--my), var(--spotlight), transparent 70%)",
             }}
           />
         )}

@@ -56,6 +56,55 @@
   --font-mono-stack:
     "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
+  /* Light theme: paper-white surfaces, near-black ink, same teal accent. */
+  --background: oklch(0.985 0.002 250);
+  --foreground: oklch(0.19 0.008 250);
+  --surface-1: oklch(1 0 0);
+  --surface-2: oklch(0.968 0.003 250);
+  --surface-3: oklch(0.938 0.004 250);
+  --card: var(--surface-1);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.21 0.008 250);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-2);
+  --muted-foreground: oklch(0.5 0.01 250);
+  --accent: var(--surface-3);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.56 0.19 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --danger: oklch(0.56 0.19 25);
+  --warning: oklch(0.65 0.14 70);
+  --info: oklch(0.55 0.13 250);
+  --success: oklch(0.55 0.13 158);
+  --teal: oklch(0.55 0.1 195);
+  --teal-dim: oklch(0.68 0.07 195);
+  --border: oklch(0.19 0.01 250 / 12%);
+  --border-strong: oklch(0.19 0.01 250 / 22%);
+  --input: oklch(0.19 0.01 250 / 16%);
+  --ring: var(--teal);
+
+  /* Theme-aware hairlines used by the graph, grid and spotlight. */
+  --grid-line: oklch(0.19 0.01 250 / 8%);
+  --graph-edge: oklch(0.19 0.01 250 / 22%);
+  --spotlight: oklch(0.19 0.01 250 / 5%);
+  --shine: oklch(1 0 0 / 55%);
+  --node-1: oklch(0.35 0.01 250);
+  --node-2: oklch(0.5 0.01 250);
+  --node-3: oklch(0.66 0.01 250);
+  --node-dim: oklch(0.78 0.008 250);
+  --graph-label: oklch(0.32 0.01 250);
+  --tooltip-bg: oklch(0.99 0 0 / 96%);
+  --tooltip-fg: oklch(0.2 0.008 250);
+  --tooltip-sub: oklch(0.48 0.01 250);
+}
+
+.dark {
+  color-scheme: dark;
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.965 0 0);
   --surface-1: oklch(0.171 0 0);
@@ -85,11 +134,20 @@
   --border-strong: oklch(1 0 0 / 16%);
   --input: oklch(1 0 0 / 12%);
   --ring: var(--teal);
+  --grid-line: oklch(1 0 0 / 6%);
+  --graph-edge: oklch(1 0 0 / 16%);
+  --spotlight: oklch(1 0 0 / 5.5%);
+  --shine: oklch(1 0 0 / 14%);
+  --node-1: oklch(0.9 0 0);
+  --node-2: oklch(0.74 0 0);
+  --node-3: oklch(0.56 0 0);
+  --node-dim: oklch(0.45 0 0);
+  --graph-label: oklch(0.86 0 0);
+  --tooltip-bg: oklch(0.18 0 0 / 96%);
+  --tooltip-fg: oklch(0.95 0 0);
+  --tooltip-sub: oklch(0.7 0 0);
 }
 
-.dark {
-  color-scheme: dark;
-}
 
 @layer base {
   * {
@@ -212,8 +270,8 @@
 /* Faint technical grid used behind the page. */
 @utility pb-grid {
   background-image:
-    linear-gradient(to right, oklch(1 0 0 / 6%) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 6%) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
 }
 
@@ -233,7 +291,7 @@
     background: linear-gradient(
       110deg,
       transparent 35%,
-      oklch(1 0 0 / 14%) 50%,
+      var(--shine) 50%,
       transparent 65%
     );
     transform: translateX(-120%);

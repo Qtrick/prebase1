@@ -160,6 +160,10 @@ export function IdeFrame({
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const wideExplorer = useMediaQuery("(min-width: 1024px)");
+  const smUp = useMediaQuery("(min-width: 640px)");
+  const xlUp = useMediaQuery("(min-width: 1280px)");
+  // Panel width must match the aside classes below so the workspace can make room.
+  const agentsWidth = !smUp ? 0 : xlUp ? 264 : wideExplorer ? 240 : 196;
 
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {

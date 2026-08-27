@@ -172,7 +172,7 @@ export function TemporalTimeline({
           <motion.div
             className="absolute top-[5px] h-px bg-teal"
             style={{ left: edges.left }}
-            animate={{ width: `${(commit / (COMMITS.length - 1)) * 100}%` }}
+            animate={{ width: (commit / (COMMITS.length - 1)) * edges.span }}
             transition={{ duration: 0.4 }}
             aria-hidden="true"
           />
@@ -193,6 +193,7 @@ export function TemporalTimeline({
                   }
                 >
                   <span
+                    data-dot
                     className={
                       "size-2.5 rounded-full border transition-colors duration-200 " +
                       (on

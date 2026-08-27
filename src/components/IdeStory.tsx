@@ -17,36 +17,36 @@ const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: stri
     n: "06",
     cap: "Editor",
     title: "Move from the map into the code.",
-    body: "Open a node from the Code Graph and work in the corresponding file without leaving the workspace. The structural context that helped you find the code stays part of the same PreBase session.",
+    body: "Open a node from the Code Graph and work in the corresponding file without leaving the workspace. The context that helped you find the code stays in the same PreBase session.",
     meta: "Code-OSS editor · graph-to-file navigation",
   },
   {
     n: "07",
     cap: "Terminal",
     title: "Run what you're building.",
-    body: "Use the integrated terminal for development servers, tests, build commands, and project tasks while the rest of the workspace stays in context.",
+    body: "Use the integrated terminal for development servers, tests, builds, and project tasks while the rest of the PreBase workspace stays in context.",
     meta: "Integrated shell · project tasks · test output",
   },
   {
     n: "08",
     cap: "Source Control",
     title: "Review the change in context.",
-    body: "Inspect modified files and diffs without leaving the environment where PreBase already understands the surrounding system.",
+    body: "Inspect modified files and diffs in the same environment where PreBase already understands the surrounding codebase.",
     meta: "Git state · file diffs · repository context",
   },
   {
     n: "09",
     cap: "Runtime Preview",
-    title: "Test what actually runs.",
-    body: "Preview supported local web applications directly in the workspace and inspect responsive states without switching to another tool.",
-    meta: "Web runtime · Electron runtime · Agent evidence",
+    title: "Test beyond the browser.",
+    body: "Preview supported local web apps inside the workbench. For supported Electron projects, PreBase can also launch a managed desktop runtime that agents can inspect directly.",
+    meta: "Web runtime · managed Electron runtime · agent evidence",
   },
   {
     n: "10",
     cap: "Extensions",
-    title: "Keep the tools around the workflow.",
-    body: "PreBase is built on the Code-OSS workbench, so familiar development extensions remain part of the environment instead of forcing a separate toolchain.",
-    meta: "Code-OSS extension model",
+    title: "Bring familiar extensions with you.",
+    body: "PreBase uses the Open VSX Registry for VS Code-compatible extensions, so many of the tools you already know remain available inside the workbench.",
+    meta: "Open VSX Registry · VS Code-compatible extensions",
   },
 ];
 
@@ -54,7 +54,7 @@ const CAP_LIST: Cap[] = CAPS.map((c) => c.cap);
 const BOUNDS = WORKBENCH_BOUNDS;
 const WORKBENCH_STEPS = PRODUCT_JOURNEY.filter((s) => s.section === "why");
 /** inside the Runtime chapter, where the web preview hands over to desktop */
-const DESKTOP_START = 0.62;
+const DESKTOP_START = 0.56;
 
 export function IdeStory() {
   const reduce = useReducedMotion();
@@ -98,8 +98,8 @@ export function IdeStory() {
               </span>
               <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Still an IDE.</h2>
               <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-                PreBase is built on the Code-OSS workbench. The map isn&apos;t a companion window or
-                a separate analysis tool — it lives inside the environment where you edit code, run
+                PreBase is built on the Code-OSS workbench. The map is not a companion window or
+                separate analysis tool. It lives in the same environment where you edit code, run
                 the project, review changes, test applications, and work with agents.
               </p>
             </div>
@@ -115,7 +115,7 @@ export function IdeStory() {
                   <span className="size-2.5 rounded-full bg-surface-3" />
                   <span className="size-2.5 rounded-full bg-surface-3" />
                   <span className="ml-1 truncate">
-                    prebase — {desktop ? "desktop runtime" : active.cap.toLowerCase()}
+                    prebase · {desktop ? "runtime preview · desktop" : active.cap.toLowerCase()}
                   </span>
                 </div>
                 <div className="relative min-h-0 flex-1">
@@ -157,15 +157,15 @@ export function IdeStory() {
                   <h3 className="mt-3 text-[clamp(1.35rem,2.1vw,1.85rem)] font-medium leading-[1.15]">
                     {chapter === 3
                       ? desktop
-                        ? "Verify the desktop application itself."
-                        : "Test what actually runs."
+                        ? "Verify the desktop app itself."
+                        : "Preview the web app."
                       : active.title}
                   </h3>
                   <p className="mt-3 max-w-[420px] text-[15px] leading-[1.6] text-muted-foreground">
                     {chapter === 3
                       ? desktop
-                        ? "For supported Electron projects, PreBase can also launch a managed desktop runtime so Agents can inspect the renderer, capture screenshots, read process output, and verify the running application itself."
-                        : active.body
+                        ? "For supported Electron projects, agents can inspect the running renderer, capture screenshots, read process output, and reload or restart the managed session as part of verification."
+                        : "Run a supported local web application inside PreBase, reload it, and inspect responsive layouts without leaving the workbench. Supported Electron projects get a managed desktop runtime next."
                       : active.body}
                   </p>
                   <p className="mt-4 font-mono text-[11px] leading-[1.5] text-muted-foreground/60">
@@ -369,6 +369,28 @@ const DEVICES = [
   { id: "mobile", label: "Mobile", w: "40%" },
 ] as const;
 
+function RuntimeStage({ stage }: { stage: "web" | "desktop" }) {
+  return (
+    <span className="flex shrink-0 items-center gap-1 font-mono text-[9px]" aria-label={`Runtime stage: ${stage}`}>
+      {(["web", "desktop"] as const).map((s, i) => (
+        <span key={s} className="flex items-center gap-1">
+          {i > 0 && <span className="text-muted-foreground/40">·</span>}
+          <span
+            className={
+              "rounded border px-1.5 py-0.5 uppercase transition-colors " +
+              (s === stage
+                ? "border-teal/40 bg-teal/10 text-teal"
+                : "border-border text-muted-foreground/50")
+            }
+          >
+            {s}
+          </span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function WebRuntime() {
   const [device, setDevice] = useState<(typeof DEVICES)[number]["id"]>("desktop");
   const [loading, setLoading] = useState(false);
@@ -382,9 +404,7 @@ function WebRuntime() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 items-center gap-1.5 border-b border-border bg-surface-2/50 px-2 py-1.5">
-        <span className="rounded border border-teal/30 bg-teal/10 px-1.5 py-0.5 font-mono text-[9px] text-teal">
-          WEB
-        </span>
+        <RuntimeStage stage="web" />
         <div className="flex gap-0.5">
           {[
             { k: "back", label: "Back", glyph: "‹" },
@@ -513,9 +533,7 @@ function DesktopRuntime({ step }: { step: number }) {
     <div className="flex h-full min-h-0 flex-col">
       {/* managed-session strip */}
       <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border bg-surface-2/60 px-2 py-1.5 font-mono text-[10px]">
-        <span className="rounded border border-teal/30 bg-teal/10 px-1.5 py-0.5 text-teal">
-          DESKTOP
-        </span>
+        <RuntimeStage stage="desktop" />
         <span className="flex items-center gap-1 text-muted-foreground">
           <span className="size-1.5 rounded-full bg-success" />
           Electron · Managed session
@@ -625,7 +643,7 @@ function DesktopRuntime({ step }: { step: number }) {
             )}
           </div>
           <p className="shrink-0 pt-2 text-[9px] leading-[1.4] text-muted-foreground/70">
-            Renderer-scoped. Native OS dialogs and menus are not automated.
+            Renderer-scoped evidence.
           </p>
         </aside>
       </div>
@@ -645,8 +663,17 @@ const EXTENSIONS = [
 function ExtensionsPane() {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0 border-b border-border px-3 py-2 text-[10px] tracking-[0.14em] text-muted-foreground">
-        EXTENSIONS
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <span className="text-[10px] tracking-[0.14em] text-muted-foreground">EXTENSIONS</span>
+        <span className="rounded border border-teal/25 bg-teal/10 px-1.5 py-0.5 font-mono text-[9px] text-teal">
+          Open VSX
+        </span>
+      </div>
+      <div className="shrink-0 px-3 pt-2.5">
+        <div className="flex items-center gap-1.5 rounded border border-border bg-background/60 px-2 py-1 font-mono text-[10px] text-muted-foreground">
+          <span aria-hidden="true">⌕</span>
+          <span>Search Open VSX</span>
+        </div>
       </div>
       <div className="min-h-0 flex-1 space-y-1.5 overflow-hidden p-3">
         {EXTENSIONS.map((e, i) => (
@@ -661,8 +688,8 @@ function ExtensionsPane() {
               <p className="truncate text-[12px] text-foreground/90">{e.name}</p>
               <p className="truncate text-[10px] text-muted-foreground">{e.desc}</p>
             </div>
-            <span className="shrink-0 rounded border border-teal/25 bg-teal/10 px-1.5 py-0.5 font-mono text-[9px] text-teal">
-              Installed
+            <span className="shrink-0 rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+              Available
             </span>
           </motion.div>
         ))}

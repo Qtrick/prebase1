@@ -9,7 +9,7 @@ import { IdeStory } from "@/components/IdeStory";
 import { Waitlist } from "@/components/Waitlist";
 import { Footer } from "@/components/Footer";
 
-const title = "PreBase — The Codebase Mapping IDE";
+const title = "PreBase | The Codebase Mapping IDE";
 const description =
   "PreBase is a codebase mapping IDE that helps developers visualize repository structure, explore changes through Git history, and give AI agents deeper codebase context.";
 

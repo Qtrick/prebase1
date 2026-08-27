@@ -4,8 +4,8 @@ import { jumpToSection } from "@/lib/journey";
 
 const LINKS = [
   { href: "#product", label: "Product" },
+  { href: "#why", label: "Workbench" },
   { href: "#explore", label: "Explore" },
-  { href: "#why", label: "Why PreBase" },
 ];
 
 export function Navbar() {

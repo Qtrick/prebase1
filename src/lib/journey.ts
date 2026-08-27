@@ -25,7 +25,7 @@ export type JourneyStep = {
 /** Chapter boundaries of the Network/Temporal story, as scroll progress. */
 export const STORY_BOUNDS = [0, 0.19, 0.38, 0.57, 0.8, 1] as const;
 /** Chapter boundaries of the Workbench story, as scroll progress. */
-export const WORKBENCH_BOUNDS = [0, 0.16, 0.32, 0.48, 0.78, 1] as const;
+export const WORKBENCH_BOUNDS = [0, 0.14, 0.28, 0.42, 0.8, 1] as const;
 
 export const PRODUCT_JOURNEY: JourneyStep[] = [
   { id: "map", n: "01", group: "NETWORK", label: "Map", section: "product", chapter: 0 },

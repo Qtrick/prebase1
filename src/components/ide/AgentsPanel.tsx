@@ -6,6 +6,7 @@ import {
   STREAM_CHARS_PER_TICK,
   STREAM_INTERVAL_MS,
   activityFor,
+  exploreSuggestionsFor,
   replyFor,
   suggestionsFor,
   type AgentMode,

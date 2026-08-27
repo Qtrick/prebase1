@@ -145,6 +145,8 @@ export function IdeFrame({
 }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const wideExplorer = useMediaQuery("(min-width: 1024px)");
+
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (reduce || !parallax || e.pointerType !== "mouse" || !ref.current) return;

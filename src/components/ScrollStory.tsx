@@ -1,5 +1,4 @@
 import {
-  AnimatePresence,
   motion,
   useMotionValueEvent,
   useReducedMotion,

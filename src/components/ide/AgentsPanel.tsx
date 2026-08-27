@@ -77,7 +77,6 @@ export function AgentsPanel({
     pinned.current = true;
 
     setMessages((m) => [...m, { id: nextId(), role: "user", text: value }]);
-    setDraft("");
 
     const steps = activityFor(mode, selected);
     const answer = replyFor(mode, selected, value);

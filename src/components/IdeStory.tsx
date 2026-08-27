@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { WORKBENCH_BOUNDS } from "@/lib/journey";
 
 /**
@@ -50,7 +50,6 @@ const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: stri
   },
 ];
 
-const CAP_LIST: Cap[] = CAPS.map((c) => c.cap);
 const BOUNDS = WORKBENCH_BOUNDS;
 /** inside the Runtime chapter, where the web preview hands over to desktop */
 const DESKTOP_START = 0.56;
@@ -90,22 +89,19 @@ export function IdeStory() {
     >
       <div className="sticky top-16 flex h-[calc(100svh-5rem)] flex-col justify-center lg:top-20 lg:h-[calc(100vh-6rem)]">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 xl:pl-[176px]">
-          <header className="flex flex-col gap-4 pb-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
-            <div className="min-w-0">
-              <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">
-                THE WORKBENCH
-              </span>
-              <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Still an IDE.</h2>
-              <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-                PreBase is built on the Code-OSS workbench. The map is not a companion window or
-                separate analysis tool. It lives in the same environment where you edit code, run
-                the project, review changes, test applications, and work with agents.
-              </p>
-            </div>
-            <CapabilityStrip active={active.cap} chapter={chapter} />
+          <header className="pb-6">
+            <span className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground">
+              THE WORKBENCH
+            </span>
+            <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Still an IDE.</h2>
+            <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
+              PreBase is built on the Code-OSS workbench. The map is not a companion window or
+              separate analysis tool. It lives in the same environment where you edit code, run
+              the project, review changes, test applications, and work with agents.
+            </p>
           </header>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-10">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-10">
             {/* sticky IDE surface */}
             <div className="order-2 h-[42svh] min-h-[260px] overflow-hidden rounded-xl border border-border bg-surface-1 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)] sm:h-[48svh] lg:order-1 lg:h-[min(56vh,470px)]">
               <div className="flex h-full min-h-0 flex-col">
@@ -121,9 +117,9 @@ export function IdeStory() {
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={desktop ? "desktop" : active.cap}
-                      initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: reduce ? 0 : -8 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={fade}
                       className="absolute inset-0"
                     >
@@ -139,40 +135,44 @@ export function IdeStory() {
               </div>
             </div>
 
-            {/* chapter copy */}
-            <div className="order-1 lg:order-2">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={active.n + String(desktop)}
-                  initial={{ opacity: 0, y: reduce ? 0 : 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: reduce ? 0 : -10 }}
-                  transition={fade}
-                >
-                  <span className="font-mono text-[11px] tracking-[0.2em] text-teal">
-                    {active.n} · {active.cap.toUpperCase()}
-                    {chapter === 3 && (desktop ? " · DESKTOP" : " · WEB")}
-                  </span>
-                  <h3 className="mt-3 text-[clamp(1.35rem,2.1vw,1.85rem)] font-medium leading-[1.15]">
-                    {chapter === 3
-                      ? desktop
-                        ? "Verify the desktop app itself."
-                        : "Preview the web app."
-                      : active.title}
-                  </h3>
-                  <p className="mt-3 max-w-[420px] text-[15px] leading-[1.6] text-muted-foreground">
-                    {chapter === 3
-                      ? desktop
-                        ? "For supported Electron projects, agents can inspect the running renderer, capture screenshots, read process output, and reload or restart the managed session as part of verification."
-                        : "Run a supported local web application inside PreBase, reload it, and inspect responsive layouts without leaving the workbench. Supported Electron projects get a managed desktop runtime next."
-                      : active.body}
-                  </p>
-                  <p className="mt-4 font-mono text-[11px] leading-[1.5] text-muted-foreground/60">
-                    {active.meta}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            {/* chapter copy — reserved height so swaps never reflow the column */}
+            <aside className="order-1 flex h-[300px] flex-col lg:order-2 lg:h-[min(56vh,470px)]">
+              <CapabilityStrip active={active.cap} chapter={chapter} />
+              <div className="relative mt-5 min-h-0 flex-1">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={active.n + String(desktop)}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={fade}
+                    className="absolute inset-x-0 top-0"
+                  >
+                    <span className="font-mono text-[11px] tracking-[0.2em] text-teal">
+                      {active.n} · {active.cap.toUpperCase()}
+                      {chapter === 3 && (desktop ? " · DESKTOP" : " · WEB")}
+                    </span>
+                    <h3 className="mt-3 text-[clamp(1.35rem,2.1vw,1.85rem)] font-medium leading-[1.15]">
+                      {chapter === 3
+                        ? desktop
+                          ? "Verify the desktop app itself."
+                          : "Preview the web app."
+                        : active.title}
+                    </h3>
+                    <p className="mt-3 max-w-[420px] text-[15px] leading-[1.6] text-muted-foreground">
+                      {chapter === 3
+                        ? desktop
+                          ? "For supported Electron projects, agents can inspect the running renderer, capture screenshots, read process output, and reload or restart the managed session as part of verification."
+                          : "Run a supported local web application inside PreBase, reload it, and inspect responsive layouts without leaving the workbench. Supported Electron projects get a managed desktop runtime next."
+                        : active.body}
+                    </p>
+                    <p className="mt-4 font-mono text-[11px] leading-[1.5] text-muted-foreground/60">
+                      {active.meta}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </aside>
           </div>
         </div>
       </div>
@@ -189,7 +189,7 @@ function CapabilityStrip({ active, chapter }: { active: Cap; chapter: number }) 
   const reduce = useReducedMotion();
   const progress = ((chapter + 1) / CAPS.length) * 100;
   return (
-    <div className="flex shrink-0 flex-col items-end gap-2" aria-hidden="true">
+    <div className="flex shrink-0 flex-col items-start gap-2" aria-hidden="true">
       <div className="flex items-baseline gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {active}
@@ -522,14 +522,14 @@ function DesktopRuntime({ step }: { step: number }) {
         </span>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_150px]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_168px]">
         {/* the Electron application window */}
-        <div className="flex min-h-0 items-center justify-center bg-background/50 p-2.5">
+        <div className="flex min-h-0 justify-center bg-background/50 p-2.5">
           <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="flex h-full max-h-[300px] w-full min-w-0 max-w-[580px] flex-col overflow-hidden rounded-md border border-border-strong bg-surface-2 shadow-[0_20px_50px_-30px_rgba(0,0,0,1)]"
+            className="flex h-full w-full min-w-0 max-w-[580px] flex-col overflow-hidden rounded-md border border-border-strong bg-surface-2 shadow-[0_20px_50px_-30px_rgba(0,0,0,1)]"
           >
             {/* native-like title bar */}
             <div className="flex shrink-0 items-center gap-1.5 border-b border-border bg-surface-3/70 px-2 py-1.5">
@@ -584,42 +584,46 @@ function DesktopRuntime({ step }: { step: number }) {
         {/* agent runtime-evidence panel */}
         <aside className="hidden min-h-0 flex-col overflow-hidden border-l border-border bg-surface-1/80 p-2.5 sm:flex">
           <p className="shrink-0 pb-2 text-[10px] tracking-[0.16em] text-muted-foreground">TEST</p>
-          <div className="min-h-0 flex-1 space-y-1.5 overflow-hidden font-mono text-[10px]">
-            <AnimatePresence initial={false}>
-              {step >= 0 && (
+          <div className="min-h-0 flex-1 overflow-hidden font-mono text-[10px] leading-relaxed">
+            <div className="min-h-[2.75rem] pb-1">
+              <AnimatePresence mode="wait" initial={false}>
+                {step >= 0 && (
+                  <motion.p
+                    key={TEST_STEPS[Math.min(step, TEST_STEPS.length - 1)]}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-muted-foreground"
+                  >
+                    {TEST_STEPS[Math.min(step, TEST_STEPS.length - 1)]}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+            <div className="mt-3 space-y-2">
+              {results.map((r) => (
                 <motion.p
-                  key={TEST_STEPS[Math.min(step, TEST_STEPS.length - 1)]}
+                  key={r}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-muted-foreground"
+                  transition={{ duration: 0.25 }}
+                  className="text-teal"
                 >
-                  {TEST_STEPS[Math.min(step, TEST_STEPS.length - 1)]}
+                  ✓ {r}
                 </motion.p>
+              ))}
+              {shot && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-1 rounded border border-border bg-surface-2 p-1"
+                >
+                  <div className="h-8 rounded-sm bg-gradient-to-br from-surface-3 to-surface-1" />
+                  <p className="pt-1 text-[9px] text-muted-foreground">screenshot.png</p>
+                </motion.div>
               )}
-            </AnimatePresence>
-            {results.map((r) => (
-              <motion.p
-                key={r}
-                initial={{ opacity: 0, y: 3 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-                className="text-teal"
-              >
-                ✓ {r}
-              </motion.p>
-            ))}
-            {shot && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="mt-1 rounded border border-border bg-surface-2 p-1"
-              >
-                <div className="h-8 rounded-sm bg-gradient-to-br from-surface-3 to-surface-1" />
-                <p className="pt-1 text-[9px] text-muted-foreground">screenshot.png</p>
-              </motion.div>
-            )}
+            </div>
           </div>
           <p className="shrink-0 pt-2 text-[9px] leading-[1.4] text-muted-foreground/70">
             Renderer-scoped evidence.

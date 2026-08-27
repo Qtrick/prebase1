@@ -228,7 +228,7 @@ export function Playground() {
               <p className="text-[10px] tracking-[0.14em] text-muted-foreground">AGENT</p>
               <div className="mt-2 flex h-[240px] flex-col">
                 <AgentsPanel
-                  contextIds={contextIds ?? contextFor(selected)}
+                  contextIds={contextIds ?? (selected ? contextFor(selected) : null)}
                   selected={selected}
                   chat
                   variant="explore"

@@ -202,7 +202,7 @@ export function ScrollStory() {
             style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}
             className={`order-2 lg:order-1 lg:h-[min(64vh,560px)] ${
               agentOn
-                ? "h-[28svh] min-h-[180px] sm:h-[50svh] sm:min-h-[320px]"
+                ? "h-[25svh] min-h-[160px] sm:h-[50svh] sm:min-h-[320px]"
                 : "h-[54svh] min-h-[300px] sm:h-[56svh]"
             }`}
           >
@@ -277,7 +277,7 @@ export function ScrollStory() {
                   }
                   className="overflow-hidden"
                 >
-                  <div className="mb-8 max-h-[30svh] overflow-y-auto rounded-xl border border-border bg-surface-1 p-3.5">
+                  <div className="mb-7 max-h-[34svh] overflow-y-auto rounded-xl border border-border bg-surface-1 p-3.5">
                     {agentPanel}
                   </div>
                 </motion.div>

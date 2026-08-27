@@ -217,10 +217,14 @@ export function IdeFrame({
           {showExplorer && (
             <motion.aside
               initial={false}
-              animate={{ opacity: 1 - explorerDim * 0.85, width: explorerDim > 0.5 ? 0 : 208 }}
+              animate={{
+                opacity: 1 - explorerDim * 0.85,
+                width: explorerDim > 0.5 ? 0 : wideExplorer ? 208 : 156,
+              }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="hidden shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 md:block"
+              className="hidden shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 sm:block"
             >
+
               <p className="px-3 pb-2 text-[10px] tracking-[0.14em] text-muted-foreground">
                 PREBASE MAPS
               </p>

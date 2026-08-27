@@ -304,9 +304,9 @@ export function IdeFrame({
           {/* agents panel — always mounted, slides over the workspace so the graph never reflows */}
           {agents && (
             <motion.aside
-              initial={{ x: 272, opacity: 0 }}
+              initial={{ x: "100%", opacity: 0 }}
               animate={{
-                x: agentsOpen ? 0 : 272,
+                x: agentsOpen ? "0%" : "100%",
                 opacity: agentsOpen ? 1 : 0,
               }}
               transition={
@@ -317,12 +317,13 @@ export function IdeFrame({
               inert={!agentsOpen}
               style={{ pointerEvents: agentsOpen ? "auto" : "none", willChange: "transform" }}
               className={
-                "absolute inset-y-0 right-0 z-20 hidden w-[264px] min-h-0 overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm " +
-                (agentsWide ? "2xl:block" : "lg:block")
+                "absolute inset-y-0 right-0 z-20 hidden min-h-0 w-[212px] overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:w-[264px] " +
+                (agentsWide ? "lg:block" : "md:block")
               }
             >
-              <div className="flex h-full min-h-0 w-[264px] flex-col overflow-hidden p-3.5 pb-4">
+              <div className="flex h-full min-h-0 w-full flex-col overflow-hidden p-3 pb-4 lg:p-3.5">
                 {agents}
+
               </div>
             </motion.aside>
           )}

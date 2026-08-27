@@ -369,6 +369,28 @@ const DEVICES = [
   { id: "mobile", label: "Mobile", w: "40%" },
 ] as const;
 
+function RuntimeStage({ stage }: { stage: "web" | "desktop" }) {
+  return (
+    <span className="flex shrink-0 items-center gap-1 font-mono text-[9px]" aria-label={`Runtime stage: ${stage}`}>
+      {(["web", "desktop"] as const).map((s, i) => (
+        <span key={s} className="flex items-center gap-1">
+          {i > 0 && <span className="text-muted-foreground/40">·</span>}
+          <span
+            className={
+              "rounded border px-1.5 py-0.5 uppercase transition-colors " +
+              (s === stage
+                ? "border-teal/40 bg-teal/10 text-teal"
+                : "border-border text-muted-foreground/50")
+            }
+          >
+            {s}
+          </span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function WebRuntime() {
   const [device, setDevice] = useState<(typeof DEVICES)[number]["id"]>("desktop");
   const [loading, setLoading] = useState(false);
@@ -382,9 +404,7 @@ function WebRuntime() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 items-center gap-1.5 border-b border-border bg-surface-2/50 px-2 py-1.5">
-        <span className="rounded border border-teal/30 bg-teal/10 px-1.5 py-0.5 font-mono text-[9px] text-teal">
-          WEB
-        </span>
+        <RuntimeStage stage="web" />
         <div className="flex gap-0.5">
           {[
             { k: "back", label: "Back", glyph: "‹" },
@@ -513,9 +533,7 @@ function DesktopRuntime({ step }: { step: number }) {
     <div className="flex h-full min-h-0 flex-col">
       {/* managed-session strip */}
       <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border bg-surface-2/60 px-2 py-1.5 font-mono text-[10px]">
-        <span className="rounded border border-teal/30 bg-teal/10 px-1.5 py-0.5 text-teal">
-          DESKTOP
-        </span>
+        <RuntimeStage stage="desktop" />
         <span className="flex items-center gap-1 text-muted-foreground">
           <span className="size-1.5 rounded-full bg-success" />
           Electron · Managed session
@@ -625,7 +643,7 @@ function DesktopRuntime({ step }: { step: number }) {
             )}
           </div>
           <p className="shrink-0 pt-2 text-[9px] leading-[1.4] text-muted-foreground/70">
-            Renderer-scoped. Native OS dialogs and menus are not automated.
+            Renderer-scoped evidence.
           </p>
         </aside>
       </div>
@@ -645,8 +663,17 @@ const EXTENSIONS = [
 function ExtensionsPane() {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0 border-b border-border px-3 py-2 text-[10px] tracking-[0.14em] text-muted-foreground">
-        EXTENSIONS
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <span className="text-[10px] tracking-[0.14em] text-muted-foreground">EXTENSIONS</span>
+        <span className="rounded border border-teal/25 bg-teal/10 px-1.5 py-0.5 font-mono text-[9px] text-teal">
+          Open VSX
+        </span>
+      </div>
+      <div className="shrink-0 px-3 pt-2.5">
+        <div className="flex items-center gap-1.5 rounded border border-border bg-background/60 px-2 py-1 font-mono text-[10px] text-muted-foreground">
+          <span aria-hidden="true">⌕</span>
+          <span>Search Open VSX</span>
+        </div>
       </div>
       <div className="min-h-0 flex-1 space-y-1.5 overflow-hidden p-3">
         {EXTENSIONS.map((e, i) => (
@@ -661,8 +688,8 @@ function ExtensionsPane() {
               <p className="truncate text-[12px] text-foreground/90">{e.name}</p>
               <p className="truncate text-[10px] text-muted-foreground">{e.desc}</p>
             </div>
-            <span className="shrink-0 rounded border border-teal/25 bg-teal/10 px-1.5 py-0.5 font-mono text-[9px] text-teal">
-              Installed
+            <span className="shrink-0 rounded border border-border px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+              Available
             </span>
           </motion.div>
         ))}

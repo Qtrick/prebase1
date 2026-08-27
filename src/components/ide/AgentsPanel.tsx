@@ -120,7 +120,11 @@ export function AgentsPanel({
     );
   }
 
-  const suggestions = suggestionsFor(selected, mode);
+  const allSuggestions = suggestionsFor(selected, mode);
+  const [questionIndex] = useState(() =>
+    Math.max(0, Math.floor(Math.random() * allSuggestions.length)),
+  );
+  const question = allSuggestions[questionIndex] ?? allSuggestions[0] ?? "Ask about this file";
 
   return (
     <div className="flex h-full min-h-0 flex-col text-[12.5px]">
@@ -217,17 +221,17 @@ export function AgentsPanel({
             </div>
 
             <div className="flex shrink-0 flex-col gap-1.5">
-              {suggestions.slice(0, 3).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  disabled={streaming}
-                  onClick={() => send(s)}
-                  className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-1.5 text-left text-[12px] leading-[1.45] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-40"
-                >
-                  {s}
-                </button>
-              ))}
+              <span className="text-[10px] tracking-[0.14em] text-muted-foreground/70">
+                SUGGESTED
+              </span>
+              <button
+                type="button"
+                disabled={streaming}
+                onClick={() => send(question)}
+                className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-2 text-left text-[12.5px] leading-[1.45] text-foreground/90 transition-all duration-200 hover:translate-x-0.5 hover:border-border-strong hover:bg-surface-2 hover:text-foreground disabled:opacity-40"
+              >
+                {question}
+              </button>
             </div>
           </>
         )}

@@ -124,10 +124,17 @@ export function AgentsPanel({
     );
   }
 
-  const allSuggestions = suggestionsFor(selected, mode);
-  const [questionIndex] = useState(() =>
-    Math.max(0, Math.floor(Math.random() * allSuggestions.length)),
-  );
+  const allSuggestions =
+    variant === "explore" ? exploreSuggestionsFor(selected) : suggestionsFor(selected, mode);
+  const [questionIndex, setQuestionIndex] = useState(0);
+
+  // Randomize the suggested question once after hydration so server and client
+  // render match on the first paint, avoiding a hydration mismatch.
+  useEffect(() => {
+    setQuestionIndex(Math.max(0, Math.floor(Math.random() * allSuggestions.length)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const question = allSuggestions[questionIndex] ?? allSuggestions[0] ?? "Ask about this file";
 
   return (

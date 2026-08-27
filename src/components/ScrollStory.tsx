@@ -1,5 +1,4 @@
 import {
-  AnimatePresence,
   motion,
   useMotionValueEvent,
   useReducedMotion,
@@ -200,11 +199,7 @@ export function ScrollStory() {
           {/* product canvas */}
           <motion.div
             style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}
-            className={`order-2 lg:order-1 lg:h-[min(64vh,560px)] ${
-              agentOn
-                ? "h-[25svh] min-h-[160px] sm:h-[50svh] sm:min-h-[320px]"
-                : "h-[54svh] min-h-[300px] sm:h-[56svh]"
-            }`}
+            className="order-2 h-[62svh] min-h-[340px] sm:h-[56svh] lg:order-1 lg:h-[min(64vh,560px)]"
           >
             <IdeFrame
               className="h-full"
@@ -261,29 +256,6 @@ export function ScrollStory() {
             ))}
           </div>
 
-          {/* mobile / narrow agents panel — appears at the Context chapter */}
-          <div className="order-3 sm:hidden">
-            <AnimatePresence initial={false}>
-              {agentOn && (
-                <motion.div
-                  key="mobile-agents"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={
-                    reduce
-                      ? { duration: 0 }
-                      : { height: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.28 } }
-                  }
-                  className="overflow-hidden"
-                >
-                  <div className="mb-7 max-h-[34svh] overflow-y-auto rounded-xl border border-border bg-surface-1 p-3.5">
-                    {agentPanel}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
         {/* scroll affordance */}

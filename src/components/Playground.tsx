@@ -148,7 +148,7 @@ export function Playground() {
 
           {/* controls + details */}
           <div className="grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-1">
-            <div className="rounded-xl border border-border bg-surface-1 p-3">
+            <div className="hidden rounded-xl border border-border bg-surface-1 p-3 sm:block">
 
               <p className="text-[10px] tracking-[0.14em] text-muted-foreground">LAYOUT</p>
               <div

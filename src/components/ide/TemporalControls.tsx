@@ -87,9 +87,9 @@ export function TemporalLegend({ visible = true }: { visible?: boolean }) {
     <motion.div
       initial={false}
       animate={{ opacity: visible ? 1 : 0 }}
-      style={{ display: visible ? "block" : "none" }}
+      style={{ display: visible ? undefined : "none" }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="shrink-0 border-t border-border bg-surface-1/60 px-3 py-1.5"
+      className="hidden shrink-0 border-t border-border bg-surface-1/60 px-3 py-1.5 sm:block"
     >
       <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] text-muted-foreground">
         {items.map((i) => (

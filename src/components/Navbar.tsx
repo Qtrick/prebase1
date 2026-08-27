@@ -65,7 +65,6 @@ export function Navbar() {
               <span className="absolute inset-x-1 -bottom-0.5 h-px origin-left scale-x-0 bg-foreground/40 transition-transform duration-200 group-hover:scale-x-100" />
             </a>
           ))}
-          <ThemeToggle />
           <a
             href="#waitlist"
             onClick={(event) => {
@@ -76,6 +75,7 @@ export function Navbar() {
           >
             Join Waitlist
           </a>
+          <ThemeToggle />
         </div>
       </nav>
     </header>

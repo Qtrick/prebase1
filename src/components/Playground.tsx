@@ -225,8 +225,7 @@ export function Playground() {
               </AnimatePresence>
             </div>
             <div className="rounded-xl border border-border bg-surface-1 p-3 sm:col-span-2 lg:col-span-1">
-              <p className="text-[10px] tracking-[0.14em] text-muted-foreground">AGENT</p>
-              <div className="mt-2 flex h-[240px] flex-col">
+              <div className="flex h-[280px] flex-col">
                 <AgentsPanel
                   contextIds={contextIds ?? (selected ? contextFor(selected) : null)}
                   selected={selected}

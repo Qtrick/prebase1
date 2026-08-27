@@ -141,8 +141,9 @@ export function Playground() {
           </IdeFrame>
 
           {/* controls + details */}
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-1">
             <div className="rounded-xl border border-border bg-surface-1 p-3">
+
               <p className="text-[10px] tracking-[0.14em] text-muted-foreground">LAYOUT</p>
               <div
                 role="group"
@@ -223,9 +224,10 @@ export function Playground() {
                 )}
               </AnimatePresence>
             </div>
-            <p className="font-mono text-[10px] text-muted-foreground/70">
+            <p className="font-mono text-[10px] text-muted-foreground/70 sm:col-span-2 lg:col-span-1">
               Interactive PreBase model · illustrative data
             </p>
+
           </div>
         </div>
       </div>

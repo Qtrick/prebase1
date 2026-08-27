@@ -1,7 +1,21 @@
 import { motion, useReducedMotion } from "motion/react";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NODES } from "@/lib/demo-graph";
 import type { GraphMode } from "@/components/graph/DemoGraph";
+
+/** Small SSR-safe media query hook used for responsive IDE chrome sizing. */
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const update = () => setMatches(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, [query]);
+  return matches;
+}
+
 
 /** Files shown in the "PreBase Maps" explorer, derived from the demo model. */
 const EXPLORER: Array<{ id?: string; name: string; depth: number; dir?: boolean }> = [
@@ -145,6 +159,8 @@ export function IdeFrame({
 }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const wideExplorer = useMediaQuery("(min-width: 1024px)");
+
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (reduce || !parallax || e.pointerType !== "mouse" || !ref.current) return;
@@ -217,10 +233,14 @@ export function IdeFrame({
           {showExplorer && (
             <motion.aside
               initial={false}
-              animate={{ opacity: 1 - explorerDim * 0.85, width: explorerDim > 0.5 ? 0 : 208 }}
+              animate={{
+                opacity: 1 - explorerDim * 0.85,
+                width: explorerDim > 0.5 ? 0 : wideExplorer ? 208 : 156,
+              }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="hidden shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 md:block"
+              className="hidden shrink-0 overflow-hidden border-r border-border bg-surface-1/80 py-3 sm:block"
             >
+
               <p className="px-3 pb-2 text-[10px] tracking-[0.14em] text-muted-foreground">
                 PREBASE MAPS
               </p>
@@ -248,7 +268,7 @@ export function IdeFrame({
                           onClick={() => onSelectFile?.(isSelected ? null : f.id!)}
                           aria-pressed={Boolean(isSelected)}
                           className={
-                            "block w-full cursor-pointer py-[3px] pr-2 text-left transition-colors duration-150 " +
+                            "block w-full cursor-pointer truncate py-[3px] pr-2 text-left transition-colors duration-150 " +
                             (isActive
                               ? "bg-teal/10 text-teal"
                               : "text-muted-foreground hover:bg-surface-2 hover:text-foreground")
@@ -284,9 +304,9 @@ export function IdeFrame({
           {/* agents panel — always mounted, slides over the workspace so the graph never reflows */}
           {agents && (
             <motion.aside
-              initial={{ x: 272, opacity: 0 }}
+              initial={{ x: "100%", opacity: 0 }}
               animate={{
-                x: agentsOpen ? 0 : 272,
+                x: agentsOpen ? "0%" : "100%",
                 opacity: agentsOpen ? 1 : 0,
               }}
               transition={
@@ -297,12 +317,13 @@ export function IdeFrame({
               inert={!agentsOpen}
               style={{ pointerEvents: agentsOpen ? "auto" : "none", willChange: "transform" }}
               className={
-                "absolute inset-y-0 right-0 z-20 hidden w-[264px] min-h-0 overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm " +
-                (agentsWide ? "2xl:block" : "lg:block")
+                "absolute inset-y-0 right-0 z-20 hidden min-h-0 w-[212px] overflow-hidden border-l border-border bg-surface-1/95 shadow-[-24px_0_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:w-[264px] " +
+                (agentsWide ? "xl:block" : "md:block")
               }
             >
-              <div className="flex h-full min-h-0 w-[264px] flex-col overflow-hidden p-3.5 pb-4">
+              <div className="flex h-full min-h-0 w-full flex-col overflow-hidden p-3 pb-4 lg:p-3.5">
                 {agents}
+
               </div>
             </motion.aside>
           )}

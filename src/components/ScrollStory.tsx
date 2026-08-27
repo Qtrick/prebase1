@@ -78,12 +78,11 @@ const TEMPORAL_START = BOUNDS[3]!;
 /* ------------------------------------------------------------------ */
 
 const KEY_P = [0, 0.1, 0.28, 0.38, 0.47, 0.57, 0.68, 0.9, 1];
-/** Zoom out through the Context chapter so the Agents panel never covers nodes. */
-const KEY_ZOOM = [1, 1, 1, 0.78, 0.78, 0.85, 1.16, 1.18, 1.18];
-const KEY_FX = [400, 400, 400, 400, 400, 400, 400, 400, 400];
-const KEY_FY = [226, 226, 226, 226, 226, 235, 252, 256, 256];
-/** extra left bias so the Agents panel has breathing room in the Context chapter */
-const KEY_BIAS = [0, 0, 0, -150, -155, -150, 0, 0, 0];
+/** Identity camera — DemoGraph already fits the map to the pane. */
+const KEY_ZOOM = [1, 1, 1, 1, 1, 1, 1, 1, 1];
+const KEY_FX = [VIEW.cx, VIEW.cx, VIEW.cx, VIEW.cx, VIEW.cx, VIEW.cx, VIEW.cx, VIEW.cx, VIEW.cx];
+const KEY_FY = [VIEW.cy, VIEW.cy, VIEW.cy, VIEW.cy, VIEW.cy, VIEW.cy, VIEW.cy, VIEW.cy, VIEW.cy];
+const KEY_BIAS = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 /** Hard camera bounds — nodes can never drift toward or past the canvas edge. */
 const MAX_PAN_X = 170;
@@ -172,9 +171,10 @@ export function ScrollStory() {
   const group: Group = CHAPTERS[chapter]!.group;
   const mode: GraphMode = group === "temporal" ? "temporal" : "network";
   const temporal = mode === "temporal";
-  // Spatial continuity: one settled layout for the whole guided story, so nodes
-  // never re-flow mid-scroll and stay exactly where the visitor last saw them.
-  const layout: LayoutMode = "constellation";
+  // Network keeps this organic map. Temporal reuses it, then opens the
+  // fitted positions in DemoGraph so the shorter temporal pane does not
+  // collapse nodes on top of each other.
+  const layout: LayoutMode = "organic";
   const agentOn = chapter === 2;
 
 

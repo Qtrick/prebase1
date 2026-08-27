@@ -47,7 +47,7 @@ export type DemoNode = {
   renamedFrom?: string;
 };
 
-export const VIEW = { w: 800, h: 460, cx: 400, cy: 226 };
+export const VIEW = { w: 800, h: 520, cx: 400, cy: 260 };
 
 export const NODES: DemoNode[] = [
   { id: "app", label: "app.tsx", path: "src/app.tsx", category: "app", weight: 2, base: { x: 400, y: 84 }, modifiedAt: [1, 3] },
@@ -127,7 +127,7 @@ export const NEIGHBORS: Record<string, string[]> = (() => {
 })();
 
 export function radiusOf(n: DemoNode) {
-  return n.weight === 2 ? 10 : n.weight === 1 ? 7 : 5;
+  return n.weight === 2 ? 7 : n.weight === 1 ? 5 : 3.5;
 }
 
 /* ------------------------------------------------------------------ */
@@ -162,10 +162,10 @@ function sphere(): Record<string, Pos> {
   return out;
 }
 
-/** Connected nodes pulled toward each other — tight constellations. */
+/** Connected nodes pulled toward each other — loose constellations. */
 function constellation(): Record<string, Pos> {
   const pos: Record<string, Pos> = organic();
-  for (let iter = 0; iter < 3; iter++) {
+  for (let iter = 0; iter < 1; iter++) {
     const next: Record<string, Pos> = {};
     for (const n of NODES) {
       const nb = NEIGHBORS[n.id] ?? [];
@@ -182,7 +182,7 @@ function constellation(): Record<string, Pos> {
       }
       const cxN = sx / nb.length;
       const cyN = sy / nb.length;
-      const k = n.weight === 2 ? 0.16 : 0.34;
+      const k = n.weight === 2 ? 0.05 : 0.1;
       next[n.id] = {
         x: p.x + (cxN - p.x) * k,
         y: p.y + (cyN - p.y) * k,
@@ -191,12 +191,11 @@ function constellation(): Record<string, Pos> {
     }
     Object.assign(pos, next);
   }
-  // expand slightly around the center so it doesn't collapse
   for (const n of NODES) {
     const p = pos[n.id]!;
     pos[n.id] = {
-      x: VIEW.cx + (p.x - VIEW.cx) * 1.22,
-      y: VIEW.cy + (p.y - VIEW.cy) * 1.18,
+      x: VIEW.cx + (p.x - VIEW.cx) * 1.42,
+      y: VIEW.cy + (p.y - VIEW.cy) * 1.36,
       depth: 1,
     };
   }

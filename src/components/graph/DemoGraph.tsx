@@ -6,7 +6,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   COMMITS,
   EDGES,
@@ -162,15 +162,133 @@ export function DemoGraph({
   );
   const [panning, setPanning] = useState(false);
 
+  const hostRef = useRef<HTMLDivElement>(null);
   const positions = LAYOUT_POSITIONS[layout];
+  const [viewport, setViewport] = useState({ w: VIEW.w, h: VIEW.h });
+
+  useLayoutEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width < 2 || height < 2) return;
+      setViewport((prev) =>
+        Math.abs(prev.w - width) < 0.5 && Math.abs(prev.h - height) < 0.5
+          ? prev
+          : { w: width, h: height },
+      );
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const fit = useMemo(() => {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const n of NODES) {
+      const p = positions[n.id]!;
+      const o = offsets[n.id];
+      const x = p.x + (o?.x ?? 0);
+      const y = p.y + (o?.y ?? 0);
+      const r = radiusOf(n);
+      minX = Math.min(minX, x - r);
+      minY = Math.min(minY, y - r);
+      maxX = Math.max(maxX, x + r);
+      maxY = Math.max(maxY, y + r);
+    }
+    const bw = Math.max(1, maxX - minX);
+    const bh = Math.max(1, maxY - minY);
+    // Comfortable inset so nodes/labels never sit on the chrome, but the
+    // map still uses most of the pane.
+    const gutter = clamp(Math.min(viewport.w, viewport.h) * 0.08, 40, 56);
+    const s = Math.min(
+      (viewport.w - gutter * 2 - 56) / bw,
+      (viewport.h - gutter * 2 - 20) / bh,
+    );
+    return {
+      s,
+      vx: viewport.w / 2,
+      vy: viewport.h / 2,
+      lx: (minX + maxX) / 2,
+      ly: (minY + maxY) / 2,
+    };
+  }, [positions, viewport, offsets]);
+
+  const rMul = mode === "temporal" ? 0.5 : 1;
+
+  const screenPos = useMemo(() => {
+    const pts: Record<string, { x: number; y: number; depth: number }> = {};
+    for (const n of NODES) {
+      const p = positions[n.id]!;
+      const o = offsets[n.id];
+      pts[n.id] = {
+        x: fit.vx + (p.x + (o?.x ?? 0) - fit.lx) * fit.s,
+        y: fit.vy + (p.y + (o?.y ?? 0) - fit.ly) * fit.s,
+        depth: p.depth,
+      };
+    }
+    if (mode !== "temporal") return pts;
+
+    const ids = NODES.map((n) => n.id);
+    for (let iter = 0; iter < 40; iter++) {
+      for (let i = 0; i < ids.length; i++) {
+        for (let j = i + 1; j < ids.length; j++) {
+          const a = pts[ids[i]!]!;
+          const b = pts[ids[j]!]!;
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const d = Math.hypot(dx, dy) || 0.01;
+          const need =
+            40 +
+            radiusOf(NODE_BY_ID[ids[i]!]!) * rMul +
+            radiusOf(NODE_BY_ID[ids[j]!]!) * rMul;
+          if (d >= need) continue;
+          const push = (need - d) * 0.5;
+          const ux = dx / d;
+          const uy = dy / d;
+          a.x -= ux * push * 0.5;
+          a.y -= uy * push * 0.5;
+          b.x += ux * push * 0.5;
+          b.y += uy * push * 0.5;
+        }
+      }
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const id of ids) {
+      const p = pts[id]!;
+      const r = radiusOf(NODE_BY_ID[id]!) * rMul;
+      minX = Math.min(minX, p.x - r);
+      minY = Math.min(minY, p.y - r);
+      maxX = Math.max(maxX, p.x + r);
+      maxY = Math.max(maxY, p.y + r);
+    }
+    const bw = Math.max(1, maxX - minX);
+    const bh = Math.max(1, maxY - minY);
+    const padX = clamp(viewport.w * 0.07, 32, 48);
+    const padY = clamp(viewport.h * 0.1, 24, 40);
+    const sx = (viewport.w - padX * 2) / bw;
+    const sy = (viewport.h - padY * 2) / bh;
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    for (const id of ids) {
+      const p = pts[id]!;
+      p.x = viewport.w / 2 + (p.x - cx) * sx;
+      p.y = viewport.h / 2 + (p.y - cy) * sy;
+    }
+    return pts;
+  }, [fit, mode, offsets, positions, rMul, viewport.h, viewport.w]);
 
   const posOf = useCallback(
-    (id: string) => {
-      const p = positions[id]!;
-      const o = offsets[id];
-      return { x: p.x + (o?.x ?? 0), y: p.y + (o?.y ?? 0), depth: p.depth };
-    },
-    [positions, offsets],
+    (id: string) => screenPos[id] ?? { x: fit.vx, y: fit.vy, depth: 1 },
+    [fit.vx, fit.vy, screenPos],
   );
 
   const present = useCallback(
@@ -241,7 +359,7 @@ export function DemoGraph({
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  const FONT = narrow ? 11.5 : 12.5;
+  const FONT = narrow ? 12 : 13;
 
   /** Lower number = resolved earlier = keeps its preferred slot. */
   const priorityOf = useCallback(
@@ -270,7 +388,7 @@ export function DemoGraph({
 
     const obstacles = NODES.filter((n) => present(n)).map((n) => {
       const pos = posOf(n.id);
-      return { x: pos.x, y: pos.y, r: radiusOf(n) + 2 };
+      return { x: pos.x, y: pos.y, r: radiusOf(n) * rMul + 2 };
     });
 
     const items = ordered.map(({ n }) => {
@@ -279,7 +397,7 @@ export function DemoGraph({
         id: n.id,
         x: pos.x,
         y: pos.y,
-        r: radiusOf(n),
+        r: radiusOf(n) * rMul,
         text: mode === "temporal" ? labelAt(n, commit) : n.label,
         fontSize: FONT,
       };
@@ -293,14 +411,14 @@ export function DemoGraph({
         id: n.id,
         x: pos.x,
         y: pos.y,
-        r: radiusOf(n),
+        r: radiusOf(n) * rMul,
         text: mode === "temporal" ? labelAt(n, commit) : n.label,
         fontSize: FONT,
       });
     }
 
-    return resolveLabelPlacements(items, obstacles, { w: VIEW.w, h: VIEW.h });
-  }, [FONT, commit, hovered, labelAll, mode, narrow, posOf, present, priorityOf]);
+    return resolveLabelPlacements(items, obstacles, { w: viewport.w, h: viewport.h });
+  }, [FONT, commit, hovered, labelAll, mode, narrow, posOf, present, priorityOf, rMul, viewport.h, viewport.w]);
 
   const dragRef = useRef<{
     id: string;
@@ -314,9 +432,9 @@ export function DemoGraph({
 
   function svgScale() {
     const el = svgRef.current;
-    if (!el) return 1;
+    if (!el) return 1 / fit.s;
     const r = el.getBoundingClientRect();
-    return VIEW.w / (r.width || VIEW.w);
+    return viewport.w / ((r.width || viewport.w) * fit.s);
   }
 
   function onNodePointerDown(e: React.PointerEvent<SVGGElement>, id: string) {
@@ -400,10 +518,12 @@ export function DemoGraph({
   );
 
   return (
+    <div ref={hostRef} className={className}>
     <svg
       ref={svgRef}
-      viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}
-      className={className}
+      viewBox={`0 0 ${viewport.w} ${viewport.h}`}
+      width="100%"
+      height="100%"
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
       focusable="false"
@@ -412,6 +532,7 @@ export function DemoGraph({
       onPointerUp={onBgPointerUp}
       onPointerCancel={onBgPointerUp}
       style={{
+        display: "block",
         cursor: full ? (panning ? "grabbing" : "grab") : undefined,
         touchAction: "pan-y",
       }}
@@ -440,8 +561,8 @@ export function DemoGraph({
           x: cameraX ?? panXSpring,
           y: cameraY ?? panYSpring,
           scale: cameraZoom ?? zoomSpring,
-          originX: `${VIEW.cx}px`,
-          originY: `${VIEW.cy}px`,
+          originX: `${viewport.w / 2}px`,
+          originY: `${viewport.h / 2}px`,
         }}
       >
 
@@ -475,7 +596,7 @@ export function DemoGraph({
               transition={{ duration: reduce ? 0 : 0.24, ease: "easeOut" }}
               cx={0}
               cy={0}
-              r={78}
+              r={78 * rMul}
               fill={`url(#${haloId})`}
               style={{ opacity: haloReveal, transformOrigin: "center" }}
             />
@@ -491,7 +612,7 @@ export function DemoGraph({
               node={n}
               index={i}
               pos={posOf(n.id)}
-              r={radiusOf(n)}
+              r={radiusOf(n) * rMul}
               fill={fillOf(n)}
               emphasis={emphasis(n.id)}
               visible={present(n)}
@@ -522,10 +643,12 @@ export function DemoGraph({
             pos={posOf(tip)}
             mode={mode}
             commit={commit}
+            viewW={viewport.w}
           />
         )}
       </motion.g>
     </svg>
+    </div>
   );
 }
 
@@ -720,17 +843,19 @@ function Tooltip({
   pos,
   mode,
   commit,
+  viewW,
 }: {
   node: DemoNode;
   pos: { x: number; y: number };
   mode: GraphMode;
   commit: number;
+  viewW: number;
 }) {
   const rel = NEIGHBORS[node.id]?.length ?? 0;
   const line2 =
     mode === "temporal" ? temporalDescription(node, commit) : `${rel} direct relationships`;
   const w = Math.max(node.label.length, line2.length) * 6.4 + 20;
-  const flip = pos.x + w + 26 > VIEW.w;
+  const flip = pos.x + w + 26 > viewW;
   const x = flip ? pos.x - w - 18 : pos.x + 18;
   const y = pos.y - 40;
   return (

@@ -51,8 +51,8 @@ export function Playground() {
           </span>
           <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Explore the map.</h2>
           <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-            The guided story shows how PreBase works. Here, take control: change the layout, inspect
-            relationships, move through history, and hand graph context to an Agent.
+            Now take control. Change the layout, inspect relationships, move through history, and
+            send graph context to an Agent.
           </p>
         </Reveal>
 

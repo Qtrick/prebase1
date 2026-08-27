@@ -37,8 +37,8 @@ export function Hero() {
             {...rise(0.18)}
             className="mx-auto mt-5 max-w-xl text-balance text-[15px] leading-relaxed text-muted-foreground sm:text-base"
           >
-            See how your codebase fits together, how it changes over time, and give agents the
-            context to work across it.
+            See how your codebase fits together, follow how it changes over time, and give agents
+            the context to work across it.
           </motion.p>
           <motion.div
             {...rise(0.27)}

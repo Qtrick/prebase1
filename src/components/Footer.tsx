@@ -14,9 +14,7 @@ export function Footer() {
             className="size-[22px] shrink-0 rounded border border-border"
           />
           <span className="shrink-0">PreBase</span>
-          <span className="text-muted-foreground">
-            · Built for developers and the agents that work with them.
-          </span>
+          <span className="text-muted-foreground">· The codebase mapping IDE.</span>
         </div>
         <div className="flex items-center gap-5 text-sm text-muted-foreground md:justify-end">
           <a

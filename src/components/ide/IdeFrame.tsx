@@ -207,7 +207,7 @@ export function IdeFrame({
             <span className="size-2.5 rounded-full bg-surface-3" />
           </div>
           <div className="mx-auto hidden max-w-[220px] flex-1 rounded-md border border-border bg-background/60 px-3 py-1 text-center font-mono text-[11px] text-muted-foreground sm:block">
-            prebase — code graph
+            prebase · code graph
           </div>
           <ModeToggle mode={mode} onChange={onModeChange} idPrefix={String(showExplorer)} />
         </div>

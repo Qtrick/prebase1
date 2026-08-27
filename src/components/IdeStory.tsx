@@ -196,8 +196,8 @@ function CapabilityStrip({ active, chapter }: { active: Cap; chapter: number }) 
             initial={false}
             animate={{
               backgroundColor:
-                i <= chapter ? "hsl(var(--teal))" : "hsl(var(--border))",
-              opacity: i === chapter ? 1 : i < chapter ? 0.55 : 0.5,
+                i <= chapter ? "var(--teal)" : "var(--border)",
+              opacity: i === chapter ? 1 : i < chapter ? 0.55 : 0.7,
             }}
             transition={reduce ? { duration: 0 } : { duration: 0.35, ease: "easeOut" }}
           />

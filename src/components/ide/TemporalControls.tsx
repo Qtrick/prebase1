@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { COMMITS, diffCounts } from "@/lib/demo-graph";
 
 export function TemporalToolbar({

@@ -199,7 +199,7 @@ export function ScrollStory() {
           {/* product canvas */}
           <motion.div
             style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}
-            className="order-2 h-[54svh] min-h-[300px] sm:h-[56svh] lg:order-1 lg:h-[min(64vh,560px)]"
+            className="order-2 h-[62svh] min-h-[340px] sm:h-[56svh] lg:order-1 lg:h-[min(64vh,560px)]"
           >
             <IdeFrame
               className="h-full"

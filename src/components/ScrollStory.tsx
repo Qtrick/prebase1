@@ -202,7 +202,7 @@ export function ScrollStory() {
             style={{ opacity: entryOpacity, y: entryY, scale: entryScale }}
             className={`order-2 lg:order-1 lg:h-[min(64vh,560px)] ${
               agentOn
-                ? "h-[40svh] min-h-[230px] sm:h-[50svh] sm:min-h-[320px]"
+                ? "h-[28svh] min-h-[180px] sm:h-[50svh] sm:min-h-[320px]"
                 : "h-[54svh] min-h-[300px] sm:h-[56svh]"
             }`}
           >

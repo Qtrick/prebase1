@@ -122,6 +122,28 @@ export function TemporalTimeline({
 }) {
   const interactive = Boolean(onCommit);
   const scrubId = useId();
+  const trackRef = useRef<HTMLDivElement>(null);
+  // Track geometry: the line should run from the first dot's center to the
+  // last dot's center, not the full row width (buttons are wider than dots).
+  const [edges, setEdges] = useState({ left: 4, right: 4, span: 0 });
+  useLayoutEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const measure = () => {
+      const dots = el.querySelectorAll<HTMLElement>("[data-dot]");
+      if (dots.length < 2) return;
+      const box = el.getBoundingClientRect();
+      const first = dots[0]!.getBoundingClientRect();
+      const last = dots[dots.length - 1]!.getBoundingClientRect();
+      const left = first.left - box.left + first.width / 2;
+      const right = box.right - last.right + last.width / 2;
+      setEdges({ left, right, span: box.width - left - right });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
     <motion.div
       initial={false}

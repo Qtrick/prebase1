@@ -81,7 +81,7 @@ export function TemporalLegend({ visible = true }: { visible?: boolean }) {
     { label: "Modified", color: "var(--warning)" },
     { label: "Removed", color: "var(--danger)" },
     { label: "Renamed", color: "var(--info)" },
-    { label: "Unchanged", color: "oklch(0.58 0 0)" },
+    { label: "Unchanged", color: "var(--node-3)" },
   ];
   return (
     <motion.div

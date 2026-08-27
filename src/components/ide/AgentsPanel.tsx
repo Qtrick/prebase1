@@ -1,12 +1,11 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NEIGHBORS, NODE_BY_ID } from "@/lib/demo-graph";
 import {
   AGENT_MODES,
   STREAM_CHARS_PER_TICK,
   STREAM_INTERVAL_MS,
   activityFor,
-  placeholderFor,
   replyFor,
   suggestionsFor,
   type AgentMode,
@@ -15,9 +14,6 @@ import {
 
 let uid = 0;
 const nextId = () => `m${++uid}`;
-
-const COMPOSER_MIN = 38;
-const COMPOSER_MAX = 96;
 
 export function AgentsPanel({
   contextIds,
@@ -34,10 +30,8 @@ export function AgentsPanel({
   chat?: boolean;
 }) {
   const reduce = useReducedMotion();
-  const inputId = `pb-agent-input-${useId()}`;
   const [mode, setMode] = useState<AgentMode>("Ask");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [draft, setDraft] = useState("");
   const [activity, setActivity] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
 
@@ -46,7 +40,6 @@ export function AgentsPanel({
   const ids = contextIds ?? (selected ? NEIGHBORS[selected] ?? [] : []);
   const related = ids.filter((id) => id !== selected);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const taRef = useRef<HTMLTextAreaElement>(null);
   const pinned = useRef(true);
 
   // --- cancellation -------------------------------------------------------
@@ -76,16 +69,6 @@ export function AgentsPanel({
     if (el && pinned.current) el.scrollTop = el.scrollHeight;
   }, [messages, activity]);
 
-  /** Autosize the composer between MIN and MAX, then scroll internally. */
-  const autosize = () => {
-    const el = taRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(COMPOSER_MAX, Math.max(COMPOSER_MIN, el.scrollHeight))}px`;
-  };
-  useLayoutEffect(autosize, [draft]);
-  useLayoutEffect(autosize, [selected]);
-
   function send(text: string) {
     const value = text.trim();
     if (!value || streaming) return;
@@ -94,7 +77,6 @@ export function AgentsPanel({
     pinned.current = true;
 
     setMessages((m) => [...m, { id: nextId(), role: "user", text: value }]);
-    setDraft("");
 
     const steps = activityFor(mode, selected);
     const answer = replyFor(mode, selected, value);
@@ -247,42 +229,6 @@ export function AgentsPanel({
                 </button>
               ))}
             </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                send(draft);
-              }}
-              className="flex shrink-0 items-end gap-1.5 rounded-md border border-border bg-surface-2 p-1.5"
-            >
-              <label className="sr-only" htmlFor={inputId}>
-                Message the agent
-              </label>
-              <textarea
-                id={inputId}
-                ref={taRef}
-                rows={1}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    send(draft);
-                  }
-                }}
-                placeholder={placeholderFor(selected)}
-                style={{ height: COMPOSER_MIN, maxHeight: COMPOSER_MAX }}
-                className="min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-1.5 py-1.5 text-[12.5px] leading-[1.45] text-foreground outline-none placeholder:text-muted-foreground/70"
-              />
-              <button
-                type="submit"
-                aria-label="Send message"
-                disabled={!draft.trim() || streaming}
-                className="mb-0.5 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded border border-teal/30 bg-teal/10 text-teal transition-colors hover:bg-teal/20 disabled:cursor-default disabled:opacity-35"
-              >
-                ↑
-              </button>
-            </form>
           </>
         )}
       </motion.div>

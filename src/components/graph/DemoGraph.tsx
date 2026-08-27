@@ -223,9 +223,9 @@ export function DemoGraph({
       const st = statusAt(n, commit);
       return STATUS_COLOR[st === "absent" ? "unchanged" : st];
     }
-    if (contextSet.size) return contextSet.has(n.id) ? "var(--teal)" : "oklch(0.45 0 0)";
+    if (contextSet.size) return contextSet.has(n.id) ? "var(--teal)" : "var(--node-dim)";
     if (n.id === active) return "var(--teal)";
-    return n.weight === 2 ? "oklch(0.9 0 0)" : n.weight === 1 ? "oklch(0.74 0 0)" : "oklch(0.56 0 0)";
+    return n.weight === 2 ? "var(--node-1)" : n.weight === 1 ? "var(--node-2)" : "var(--node-3)";
   }
 
   /* ---------------------------------------------------------------- */
@@ -699,7 +699,7 @@ function Node({
           textAnchor={placement?.anchor ?? "start"}
           fontSize={fontSize}
           fontFamily="var(--font-mono-stack)"
-          fill={selected || hover ? "var(--teal)" : "oklch(0.86 0 0)"}
+          fill={selected || hover ? "var(--teal)" : "var(--graph-label)"}
           stroke="var(--background)"
           strokeWidth={2.6}
           strokeOpacity={0.85}
@@ -746,13 +746,13 @@ function Tooltip({
         width={w}
         height={38}
         rx={5}
-        fill="oklch(0.18 0 0 / 96%)"
+        fill="var(--tooltip-bg)"
         stroke="var(--graph-edge)"
       />
-      <text x={x + 10} y={16} fontSize={11} fontFamily="var(--font-mono-stack)" fill="oklch(0.95 0 0)">
+      <text x={x + 10} y={16} fontSize={11} fontFamily="var(--font-mono-stack)" fill="var(--tooltip-fg)">
         {node.label}
       </text>
-      <text x={x + 10} y={30} fontSize={10} fontFamily="var(--font-mono-stack)" fill="oklch(0.7 0 0)">
+      <text x={x + 10} y={30} fontSize={10} fontFamily="var(--font-mono-stack)" fill="var(--tooltip-sub)">
         {line2}
       </text>
     </motion.g>

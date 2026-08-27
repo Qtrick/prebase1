@@ -52,7 +52,6 @@ const CAPS: Array<{ n: string; cap: Cap; title: string; body: string; meta: stri
 
 const CAP_LIST: Cap[] = CAPS.map((c) => c.cap);
 const BOUNDS = WORKBENCH_BOUNDS;
-const WORKBENCH_STEPS = PRODUCT_JOURNEY.filter((s) => s.section === "why");
 /** inside the Runtime chapter, where the web preview hands over to desktop */
 const DESKTOP_START = 0.56;
 

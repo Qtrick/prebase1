@@ -72,7 +72,13 @@ export function Playground() {
               setContextIds(null);
             }}
             agents={
-              <AgentsPanel contextIds={contextIds} selected={selected} active={Boolean(contextIds)} />
+              <AgentsPanel
+                contextIds={contextIds ?? (selected ? contextFor(selected) : null)}
+                selected={selected}
+                active={Boolean(contextIds)}
+                chat
+                variant="explore"
+              />
             }
             toolbar={
               <TemporalToolbar

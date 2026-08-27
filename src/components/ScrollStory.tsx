@@ -257,29 +257,6 @@ export function ScrollStory() {
             ))}
           </div>
 
-          {/* mobile / narrow agents panel — appears at the Context chapter */}
-          <div className="order-3 sm:hidden">
-            <AnimatePresence initial={false}>
-              {agentOn && (
-                <motion.div
-                  key="mobile-agents"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={
-                    reduce
-                      ? { duration: 0 }
-                      : { height: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.28 } }
-                  }
-                  className="overflow-hidden"
-                >
-                  <div className="mb-7 max-h-[34svh] overflow-y-auto rounded-xl border border-border bg-surface-1 p-3.5">
-                    {agentPanel}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
         {/* scroll affordance */}

@@ -255,23 +255,35 @@ export function ScrollStory() {
           </motion.div>
 
           {/* chapter copy */}
-          <div className="relative order-1 h-[150px] sm:h-[164px] lg:order-2 lg:h-[320px]">
+          <div className="relative order-1 h-[132px] sm:h-[164px] lg:order-2 lg:h-[320px]">
             {CHAPTERS.map((c, i) => (
               <ChapterCopy key={c.n} chapter={c} index={i} progress={p} />
             ))}
           </div>
 
           {/* mobile / narrow agents panel — appears at the Context chapter */}
-          {agentOn && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="order-3 max-h-[38svh] overflow-hidden rounded-xl border border-border bg-surface-1 p-3.5 sm:hidden"
-            >
-              {agentPanel}
-            </motion.div>
-          )}
+          <div className="order-3 sm:hidden">
+            <AnimatePresence initial={false}>
+              {agentOn && (
+                <motion.div
+                  key="mobile-agents"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={
+                    reduce
+                      ? { duration: 0 }
+                      : { height: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }, opacity: { duration: 0.28 } }
+                  }
+                  className="overflow-hidden"
+                >
+                  <div className="max-h-[24svh] overflow-hidden rounded-xl border border-border bg-surface-1 p-3.5">
+                    {agentPanel}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* scroll affordance */}

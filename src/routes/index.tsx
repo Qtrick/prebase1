@@ -32,7 +32,7 @@ function Index() {
     <div className="relative min-h-screen [overflow-x:clip]">
       <div
         aria-hidden="true"
-        className="pb-grid pb-mask-fade pointer-events-none fixed inset-0 -z-10 opacity-40"
+        className="pb-grid pb-mask-fade pointer-events-none fixed inset-0 -z-10 opacity-50"
       />
       <ScrollProgress />
       <Navbar />

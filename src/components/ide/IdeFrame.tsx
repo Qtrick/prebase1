@@ -268,7 +268,7 @@ export function IdeFrame({
                           onClick={() => onSelectFile?.(isSelected ? null : f.id!)}
                           aria-pressed={Boolean(isSelected)}
                           className={
-                            "block w-full cursor-pointer py-[3px] pr-2 text-left transition-colors duration-150 " +
+                            "block w-full cursor-pointer truncate py-[3px] pr-2 text-left transition-colors duration-150 " +
                             (isActive
                               ? "bg-teal/10 text-teal"
                               : "text-muted-foreground hover:bg-surface-2 hover:text-foreground")

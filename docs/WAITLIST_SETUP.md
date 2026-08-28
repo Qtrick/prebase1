@@ -40,7 +40,7 @@ The Turnstile **site key** is set in `src/lib/turnstile-config.ts` (override wit
 Current endpoint:
 
 ```
-https://script.google.com/macros/s/AKfycbz34OMfhhqx3DLrEJbbhYI5ho0gQTY3dponed6sSkp6_r1MWwDwOZ-NSHogzDHyZ8g2/exec
+https://script.google.com/macros/s/AKfycbyOV8LwyfAB_tQ9W-3dOC41LH4gM7frZ7LTzQ-ltNqzci5rlWO5K6gHRLYUNTlIlXEr/exec
 ```
 
 If you create a **new** deployment (a different `/exec` URL), update both of those files and republish.

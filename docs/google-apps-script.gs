@@ -142,12 +142,17 @@ function verifyTurnstile(token) {
     response: token
   };
 
-  var response = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'post',
-    contentType: 'application/x-www-form-urlencoded',
-    payload: payload,
-    muteHttpExceptions: true
-  });
+  var response;
+  try {
+    response = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'post',
+      contentType: 'application/x-www-form-urlencoded',
+      payload: payload,
+      muteHttpExceptions: true
+    });
+  } catch (err) {
+    return { ok: false, message: 'Verification failed. Please try again.' };
+  }
 
   var result;
   try {
@@ -191,4 +196,20 @@ function json(payload) {
   return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(
     ContentService.MimeType.JSON
   );
+}
+
+/**
+ * Run once from the editor to authorize Cloudflare siteverify (external UrlFetch).
+ *
+ * 1. Select testVerifyTurnstile in the function dropdown → Run.
+ * 2. Review permissions → Allow (include external network access).
+ * 3. Open Execution log — expect:
+ *      {"ok":false,"message":"Verification failed. Please try again."}
+ *    (dummy token rejected by Cloudflare = siteverify is working).
+ * 4. Deploy → Manage deployments → pencil → Version: New version → Deploy.
+ */
+function testVerifyTurnstile() {
+  var result = verifyTurnstile('XXXX.DUMMY.TOKEN.XXXX');
+  Logger.log(JSON.stringify(result));
+  return result;
 }

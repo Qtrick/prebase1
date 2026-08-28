@@ -7,6 +7,7 @@
  */
 
 import { WAITLIST_SCRIPT_URL } from "./waitlist-config";
+import { TURNSTILE_SITE_KEY } from "./turnstile-config";
 
 export type WaitlistRole = "" | "Developer" | "Student" | "Founder / Team" | "Other";
 
@@ -15,6 +16,8 @@ export type WaitlistInput = {
   role?: WaitlistRole;
   /** hidden honeypot field — must stay empty */
   website?: string;
+  /** Cloudflare Turnstile token (`cf-turnstile-response`). */
+  turnstileToken?: string;
 };
 
 export const WAITLIST_ALREADY_MESSAGE = "You're already on the waitlist!";
@@ -23,7 +26,12 @@ export type WaitlistResult =
   | { ok: true; status: "created" }
   | {
       ok: false;
-      reason: "invalid_email" | "not_configured" | "network" | "already_registered";
+      reason:
+        | "invalid_email"
+        | "not_configured"
+        | "network"
+        | "already_registered"
+        | "captcha_failed";
       message?: string;
     };
 
@@ -43,6 +51,7 @@ const mock = String(import.meta.env["VITE_WAITLIST_MOCK"] ?? "") === "true";
 const mockRegistered = new Set<string>();
 
 export const waitlistConfigured = Boolean(endpoint) || mock;
+export const turnstileRequired = !mock && Boolean(TURNSTILE_SITE_KEY);
 
 function utmParams() {
   const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
@@ -77,6 +86,14 @@ export function resultFromPayload(
     };
   }
 
+  if (data.status === "captcha_failed" || data.code === 403) {
+    return {
+      ok: false,
+      reason: "captcha_failed",
+      message: data.message?.trim() || "Verification failed. Please try again.",
+    };
+  }
+
   if (data.ok === false) return { ok: false, reason: "network" };
 
   if (data.ok === true) return { ok: true, status: "created" };
@@ -104,6 +121,11 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
   const email = input.email.trim().toLowerCase();
   if (!isValidEmail(email)) return { ok: false, reason: "invalid_email" };
 
+  const turnstileToken = input.turnstileToken?.trim() ?? "";
+  if (turnstileRequired && !turnstileToken) {
+    return { ok: false, reason: "captcha_failed", message: "Complete the verification check." };
+  }
+
   if (mock) {
     await new Promise((r) => setTimeout(r, 700));
     if (mockRegistered.has(email)) {
@@ -123,6 +145,7 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
     page_url: typeof window === "undefined" ? "" : window.location.href,
     referrer: typeof document === "undefined" ? "" : document.referrer,
     website: "",
+    "cf-turnstile-response": turnstileToken,
   });
 
   const controller = new AbortController();

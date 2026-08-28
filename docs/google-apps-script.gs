@@ -10,6 +10,7 @@
  */
 
 var SHEET_NAME = 'Waitlist';
+var TURNSTILE_ACTION = 'waitlist';
 var HEADERS = [
   'Timestamp',
   'Email',
@@ -31,6 +32,16 @@ function doPost(e) {
     // Honeypot: silently accept, store nothing.
     if (String(params.website || '').trim() !== '') {
       return json({ ok: true, status: 'created' });
+    }
+
+    var turnstile = verifyTurnstile(String(params['cf-turnstile-response'] || '').trim());
+    if (!turnstile.ok) {
+      return json({
+        ok: false,
+        status: 'captcha_failed',
+        message: turnstile.message,
+        code: 403
+      });
     }
 
     var email = String(params.email || '').trim().toLowerCase();
@@ -108,6 +119,63 @@ function emailExists(sheet, email) {
 function isValidEmail(email) {
   if (!email || email.length > 254) return false;
   return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
+/**
+ * Canonical Turnstile siteverify — runs server-side before any row is written.
+ * Store TURNSTILE_SECRET in Script Properties (Project settings → Script properties).
+ * Optional TURNSTILE_HOSTNAMES: comma-separated frontend hostnames to allow.
+ */
+function verifyTurnstile(token) {
+  if (!token || token.length > 2048) {
+    return { ok: false, message: 'Complete the verification check.' };
+  }
+
+  var props = PropertiesService.getScriptProperties();
+  var secret = props.getProperty('TURNSTILE_SECRET');
+  if (!secret) {
+    return { ok: false, message: 'Verification is not configured.' };
+  }
+
+  var payload = {
+    secret: secret,
+    response: token
+  };
+
+  var response = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'post',
+    contentType: 'application/x-www-form-urlencoded',
+    payload: payload,
+    muteHttpExceptions: true
+  });
+
+  var result;
+  try {
+    result = JSON.parse(response.getContentText());
+  } catch (err) {
+    return { ok: false, message: 'Verification failed. Please try again.' };
+  }
+
+  if (!result || result.success !== true) {
+    return { ok: false, message: 'Verification failed. Please try again.' };
+  }
+
+  if (result.action && result.action !== TURNSTILE_ACTION) {
+    return { ok: false, message: 'Verification failed. Please try again.' };
+  }
+
+  var allowed = String(props.getProperty('TURNSTILE_HOSTNAMES') || '')
+    .split(',')
+    .map(function (h) {
+      return h.trim();
+    })
+    .filter(Boolean);
+
+  if (allowed.length > 0 && result.hostname && allowed.indexOf(result.hostname) === -1) {
+    return { ok: false, message: 'Verification failed. Please try again.' };
+  }
+
+  return { ok: true };
 }
 
 /** Trim, cap length, and neutralise spreadsheet formula injection. */

@@ -1,9 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useCallback, useRef, useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Reveal } from "./Reveal";
+import { TurnstileWidget, type TurnstileHandle } from "./TurnstileWidget";
 import {
   isValidEmail,
   submitWaitlist,
+  turnstileRequired,
   WAITLIST_ALREADY_MESSAGE,
   waitlistConfigured,
   type WaitlistRole,
@@ -21,9 +23,33 @@ export function Waitlist() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<WaitlistRole>("");
   const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const submitting = status.kind === "submitting";
+
+  const resetTurnstile = useCallback(() => {
+    turnstileRef.current?.reset();
+    setTurnstileToken(null);
+  }, []);
+
+  const onTurnstileToken = useCallback((token: string) => {
+    setTurnstileToken(token);
+    if (status.kind === "error") setStatus({ kind: "idle" });
+  }, [status.kind]);
+
+  const onTurnstileExpire = useCallback(() => {
+    setTurnstileToken(null);
+  }, []);
+
+  const onTurnstileError = useCallback(() => {
+    setTurnstileToken(null);
+    setStatus({
+      kind: "error",
+      message: "Verification failed to load. Refresh the page and try again.",
+    });
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -37,9 +63,21 @@ export function Waitlist() {
       setStatus({ kind: "error", message: "Something went wrong. Please try again." });
       return;
     }
+    if (turnstileRequired && !turnstileToken) {
+      setStatus({ kind: "error", message: "Complete the verification check." });
+      return;
+    }
 
     setStatus({ kind: "submitting" });
-    const result = await submitWaitlist({ email, role, website });
+    const result = await submitWaitlist({
+      email,
+      role,
+      website,
+      turnstileToken: turnstileToken ?? undefined,
+    });
+
+    resetTurnstile();
+
     if (result.ok) {
       setStatus({ kind: "success" });
       setEmail("");
@@ -48,6 +86,11 @@ export function Waitlist() {
       setStatus({
         kind: "error",
         message: result.message ?? WAITLIST_ALREADY_MESSAGE,
+      });
+    } else if (result.reason === "captcha_failed") {
+      setStatus({
+        kind: "error",
+        message: result.message ?? "Verification failed. Please try again.",
       });
     } else {
       setStatus({
@@ -127,9 +170,21 @@ export function Waitlist() {
               />
             </div>
 
+            {turnstileRequired && (
+              <div className="mt-4 flex justify-center sm:justify-start">
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onToken={onTurnstileToken}
+                  onExpire={onTurnstileExpire}
+                  onError={onTurnstileError}
+                  theme="dark"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || (turnstileRequired && !turnstileToken)}
               className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
             >
               {submitting ? "Joining..." : "Join the Waitlist"}

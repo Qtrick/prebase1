@@ -34,6 +34,9 @@ The live `/exec` URL is set in two places so signups work without extra dashboar
 1. `src/lib/waitlist-config.ts` — `WAITLIST_SCRIPT_URL` (the default)
 2. `.env` / `.env.example` — `VITE_WAITLIST_ENDPOINT` (overrides the default when present)
 
+The Turnstile **site key** is set in `src/lib/turnstile-config.ts` (override with
+`VITE_TURNSTILE_SITE_KEY` if needed). Site key: `0x4AAAAAAEfhQHv5YzRsO9yI`.
+
 Current endpoint:
 
 ```
@@ -44,10 +47,24 @@ If you create a **new** deployment (a different `/exec` URL), update both of tho
 
 **Access:** the web app must allow unauthenticated POST from the public site. In the deployment, set **Who has access: Anyone**. "Only myself" or "Anyone with a Google account" returns Access Denied and signups will fail.
 
-## 4. Test
+## 4. Turnstile (bot protection)
+
+The waitlist form uses Cloudflare Turnstile. The browser sends a one-time
+`cf-turnstile-response` token with each signup; the Apps Script verifies it
+server-side before writing to the sheet.
+
+1. In the [Cloudflare Turnstile dashboard](https://dash.cloudflare.com/?to=/:account/turnstile), open your widget and copy the **secret key**.
+2. In the Apps Script editor, open **Project settings → Script properties** and add:
+   - `TURNSTILE_SECRET` — your widget secret key
+   - `TURNSTILE_HOSTNAMES` *(optional)* — comma-separated frontend hostnames, e.g. `prebase.dev,www.prebase.dev,localhost,127.0.0.1`
+3. Redeploy the web app (new version) after updating `docs/google-apps-script.gs`.
+
+The widget action is `waitlist` on both the frontend and in siteverify.
+
+## 5. Test
 
 1. Open the site, scroll to **Get early access to PreBase**.
-2. Submit a real email address.
+2. Complete the Turnstile check and submit a real email address.
 3. Confirm the success message appears, then confirm the row shows up in the
    `Waitlist` tab with a server-side timestamp.
 4. Submit the same email again — you should see **You're already on the waitlist!**
@@ -65,7 +82,7 @@ Creating a *new deployment* instead would give you a different URL.
 ## Local development
 
 Without an endpoint the form reports a failure rather than pretending to
-succeed. To work on the UI without a live endpoint, set:
+succeed. To work on the UI without a live endpoint or Turnstile, set:
 
 ```
 VITE_WAITLIST_MOCK=true

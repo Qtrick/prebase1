@@ -25,6 +25,14 @@ describe("waitlist submission", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("does not POST without a Turnstile token when the widget is required", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    const result = await submitWaitlist({ email: "you@domain.com" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("captcha_failed");
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("does not require a role", async () => {
     const result = await submitWaitlist({
       email: "not-valid",

@@ -1,5 +1,6 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { TURNSTILE_ACTION, TURNSTILE_SITE_KEY } from "@/lib/turnstile-config";
+import { readDocumentTheme, subscribeDocumentTheme, type SiteTheme } from "@/lib/theme";
 
 declare global {
   interface Window {
@@ -32,7 +33,8 @@ type Props = {
   onToken: (token: string) => void;
   onExpire?: () => void;
   onError?: () => void;
-  theme?: "light" | "dark" | "auto";
+  /** When omitted, follows the site light/dark class on <html>. */
+  theme?: SiteTheme;
 };
 
 const SCRIPT_ID = "cf-turnstile-api";
@@ -73,7 +75,7 @@ function loadTurnstileScript(): Promise<void> {
 }
 
 export const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function TurnstileWidget(
-  { onToken, onExpire, onError, theme = "dark" },
+  { onToken, onExpire, onError, theme },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,10 +83,18 @@ export const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function Turns
   const onTokenRef = useRef(onToken);
   const onExpireRef = useRef(onExpire);
   const onErrorRef = useRef(onError);
+  const [documentTheme, setDocumentTheme] = useState<SiteTheme>("dark");
+  const resolvedTheme = theme ?? documentTheme;
 
   onTokenRef.current = onToken;
   onExpireRef.current = onExpire;
   onErrorRef.current = onError;
+
+  useEffect(() => {
+    if (theme) return;
+    setDocumentTheme(readDocumentTheme());
+    return subscribeDocumentTheme(setDocumentTheme);
+  }, [theme]);
 
   useImperativeHandle(ref, () => ({
     reset() {
@@ -111,7 +121,7 @@ export const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function Turns
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
           action: TURNSTILE_ACTION,
-          theme,
+          theme: resolvedTheme,
           appearance: "interaction-only",
           callback: (token) => onTokenRef.current(token),
           "expired-callback": () => onExpireRef.current?.(),
@@ -127,7 +137,7 @@ export const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function Turns
         widgetIdRef.current = null;
       }
     };
-  }, [theme]);
+  }, [resolvedTheme]);
 
   return (
     <div

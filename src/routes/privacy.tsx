@@ -45,7 +45,8 @@ function Privacy() {
           </p>
           <p className="mt-3">
             We also receive a Cloudflare Turnstile token so we can tell people from automated
-            traffic. We do not use that token to identify you beyond that check.
+            traffic. The waitlist endpoint checks that token with Cloudflare before storing
+            anything. We do not use that token to identify you beyond that check.
           </p>
         </section>
 

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as WhyRouteImport } from './routes/why'
@@ -17,6 +18,11 @@ import { Route as WhyRouteImport } from './routes/why'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -37,12 +43,14 @@ const WhyRoute = WhyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/privacy': typeof PrivacyRoute
   '/team': typeof TeamRoute
   '/why': typeof WhyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/privacy': typeof PrivacyRoute
   '/team': typeof TeamRoute
   '/why': typeof WhyRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/privacy': typeof PrivacyRoute
   '/team': typeof TeamRoute
   '/why': typeof WhyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/privacy' | '/team' | '/why'
+  fullPaths: '/' | '/$' | '/privacy' | '/team' | '/why'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/privacy' | '/team' | '/why'
-  id: '__root__' | '/' | '/privacy' | '/team' | '/why'
+  to: '/' | '/$' | '/privacy' | '/team' | '/why'
+  id: '__root__' | '/' | '/$' | '/privacy' | '/team' | '/why'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SplatRoute: typeof SplatRoute
   PrivacyRoute: typeof PrivacyRoute
   TeamRoute: typeof TeamRoute
   WhyRoute: typeof WhyRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SplatRoute: SplatRoute,
   PrivacyRoute: PrivacyRoute,
   TeamRoute: TeamRoute,
   WhyRoute: WhyRoute,

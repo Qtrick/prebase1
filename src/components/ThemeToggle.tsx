@@ -1,35 +1,29 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import {
+  applySiteTheme,
+  isSiteTheme,
+  readDocumentTheme,
+  THEME_STORAGE_KEY,
+  type SiteTheme,
+} from "@/lib/theme";
 
-export const THEME_STORAGE_KEY = "prebase-theme";
-
-type Theme = "dark" | "light";
-
-function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
-  root.style.colorScheme = theme;
-}
+export { THEME_STORAGE_KEY };
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<SiteTheme>("dark");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const initial: Theme =
-      stored === "light" || stored === "dark"
-        ? stored
-        : document.documentElement.classList.contains("dark")
-          ? "dark"
-          : "light";
+    const initial: SiteTheme = isSiteTheme(stored) ? stored : readDocumentTheme();
     setTheme(initial);
-    applyTheme(initial);
+    applySiteTheme(initial);
   }, []);
 
   const toggle = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+    const next: SiteTheme = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    applyTheme(next);
+    applySiteTheme(next);
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {

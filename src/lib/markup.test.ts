@@ -106,6 +106,21 @@ describe("rendered trust surfaces", () => {
     expect(read("routes/privacy.tsx")).toContain('createFileRoute("/privacy")');
   });
 
+  it("posts the waitlist form and follows the site theme for Turnstile", () => {
+    const waitlist = read("components/Waitlist.tsx");
+    expect(waitlist).toContain('method="post"');
+    expect(waitlist).toContain('action="#waitlist"');
+    expect(waitlist).not.toContain('theme="dark"');
+    expect(read("components/TurnstileWidget.tsx")).toContain("subscribeDocumentTheme");
+    expect(read("routes/privacy.tsx")).toContain("checks that token with Cloudflare");
+  });
+
+  it("sets a document title on the 404 page", () => {
+    expect(read("routes/__root.tsx")).toContain("Page not found | PreBase");
+    expect(read("routes/$.tsx")).toContain("Page not found | PreBase");
+    expect(read("routes/$.tsx")).toContain("noindex");
+  });
+
   it("exposes Workbench, Explore, and Waitlist homepage anchors", () => {
     expect(read("components/IdeStory.tsx")).toContain('id="why"');
     expect(read("components/Playground.tsx")).toContain('id="explore"');

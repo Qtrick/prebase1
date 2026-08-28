@@ -131,6 +131,8 @@ export function Waitlist() {
 
         <Reveal delay={0.16} className="mt-9">
           <form
+            method="post"
+            action="#waitlist"
             onSubmit={onSubmit}
             noValidate
             className="relative rounded-xl border border-border bg-surface-1 p-4 text-left sm:p-5"
@@ -201,7 +203,6 @@ export function Waitlist() {
                   onToken={onTurnstileToken}
                   onExpire={onTurnstileExpire}
                   onError={onTurnstileError}
-                  theme="dark"
                 />
               )}
 

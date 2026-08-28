@@ -119,59 +119,59 @@ export function Waitlist() {
             noValidate
             className="rounded-xl border border-border bg-surface-1 p-4 text-left sm:p-5"
           >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex-1">
-                <label htmlFor="wl-email" className="mb-1.5 block text-xs text-muted-foreground">
-                  Email address
-                </label>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex-1">
+                  <label htmlFor="wl-email" className="mb-1.5 block text-xs text-muted-foreground">
+                    Email address
+                  </label>
+                  <input
+                    id="wl-email"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    required
+                    placeholder="you@domain.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-11 w-full rounded-md border border-input bg-background px-3 text-[15px] text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground/60 focus:border-teal/60"
+                  />
+                </div>
+                <div className="sm:w-44">
+                  <label htmlFor="wl-role" className="mb-1.5 block text-xs text-muted-foreground">
+                    I&apos;m a... <span className="text-muted-foreground/60">(optional)</span>
+                  </label>
+                  <select
+                    id="wl-role"
+                    name="role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as WaitlistRole)}
+                    className="h-11 w-full rounded-md border border-input bg-background px-3 text-[15px] text-foreground outline-none transition-colors duration-200 focus:border-teal/60"
+                  >
+                    <option value="">Select</option>
+                    {ROLES.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* honeypot */}
+              <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+                <label htmlFor="wl-website">Website</label>
                 <input
-                  id="wl-email"
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  required
-                  placeholder="you@domain.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11 w-full rounded-md border border-input bg-background px-3 text-[15px] text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground/60 focus:border-teal/60"
+                  id="wl-website"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
                 />
               </div>
-              <div className="sm:w-44">
-                <label htmlFor="wl-role" className="mb-1.5 block text-xs text-muted-foreground">
-                  I&apos;m a... <span className="text-muted-foreground/60">(optional)</span>
-                </label>
-                <select
-                  id="wl-role"
-                  name="role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as WaitlistRole)}
-                  className="h-11 w-full rounded-md border border-input bg-background px-3 text-[15px] text-foreground outline-none transition-colors duration-200 focus:border-teal/60"
-                >
-                  <option value="">Select</option>
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
-            {/* honeypot */}
-            <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
-              <label htmlFor="wl-website">Website</label>
-              <input
-                id="wl-website"
-                name="website"
-                tabIndex={-1}
-                autoComplete="off"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-              />
-            </div>
-
-            {turnstileRequired && (
-              <div className="mt-4 flex justify-center sm:justify-start">
+              {turnstileRequired && (
                 <TurnstileWidget
                   ref={turnstileRef}
                   onToken={onTurnstileToken}
@@ -179,44 +179,44 @@ export function Waitlist() {
                   onError={onTurnstileError}
                   theme="dark"
                 />
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting || (turnstileRequired && !turnstileToken)}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+              >
+                {submitting ? "Joining..." : "Join the Waitlist"}
+              </button>
+
+              <div aria-live="polite">
+                <AnimatePresence mode="wait">
+                  {status.kind === "success" && (
+                    <motion.p
+                      key="ok"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2 text-sm text-success"
+                    >
+                      <Check />
+                      You&apos;re on the list. We&apos;ll keep you posted.
+                    </motion.p>
+                  )}
+                  {status.kind === "error" && (
+                    <motion.p
+                      key="err"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2 text-sm text-destructive"
+                    >
+                      <Cross />
+                      {status.message}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting || (turnstileRequired && !turnstileToken)}
-              className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
-            >
-              {submitting ? "Joining..." : "Join the Waitlist"}
-            </button>
-
-            <div aria-live="polite" className="min-h-[24px]">
-              <AnimatePresence mode="wait">
-                {status.kind === "success" && (
-                  <motion.p
-                    key="ok"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-3 flex items-center gap-2 text-sm text-success"
-                  >
-                    <Check />
-                    You&apos;re on the list. We&apos;ll keep you posted.
-                  </motion.p>
-                )}
-                {status.kind === "error" && (
-                  <motion.p
-                    key="err"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-3 flex items-center gap-2 text-sm text-destructive"
-                  >
-                    <Cross />
-                    {status.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
             </div>
           </form>
         </Reveal>

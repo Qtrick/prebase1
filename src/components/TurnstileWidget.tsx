@@ -10,6 +10,8 @@ declare global {
           sitekey: string;
           action?: string;
           theme?: "light" | "dark" | "auto";
+          appearance?: "always" | "execute" | "interaction-only";
+          size?: "normal" | "compact" | "flexible";
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
@@ -110,6 +112,7 @@ export const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function Turns
           sitekey: TURNSTILE_SITE_KEY,
           action: TURNSTILE_ACTION,
           theme,
+          appearance: "interaction-only",
           callback: (token) => onTokenRef.current(token),
           "expired-callback": () => onExpireRef.current?.(),
           "error-callback": () => onErrorRef.current?.(),
@@ -126,5 +129,11 @@ export const TurnstileWidget = forwardRef<TurnstileHandle, Props>(function Turns
     };
   }, [theme]);
 
-  return <div ref={containerRef} className="cf-turnstile" aria-label="Security check" />;
+  return (
+    <div
+      ref={containerRef}
+      className="cf-turnstile [&:empty]:hidden [&>iframe]:max-w-full"
+      aria-label="Security check"
+    />
+  );
 });

@@ -47,7 +47,12 @@ function doPost(e) {
       var sheet = getSheet();
 
       if (emailExists(sheet, email)) {
-        return json({ ok: true, status: 'already_registered' });
+        return json({
+          ok: false,
+          status: 'already_registered',
+          message: "You're already on the waitlist!",
+          code: 409
+        });
       }
 
       sheet.appendRow([

@@ -50,8 +50,8 @@ If you create a **new** deployment (a different `/exec` URL), update both of tho
 2. Submit a real email address.
 3. Confirm the success message appears, then confirm the row shows up in the
    `Waitlist` tab with a server-side timestamp.
-4. Submit the same email again — it should still succeed, and the script
-   returns `already_registered` instead of adding a duplicate row.
+4. Submit the same email again — you should see **You're already on the waitlist!**
+   and no duplicate row is added.
 
 ## Updating the script later
 

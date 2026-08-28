@@ -17,9 +17,15 @@ export type WaitlistInput = {
   website?: string;
 };
 
+export const WAITLIST_ALREADY_MESSAGE = "You're already on the waitlist!";
+
 export type WaitlistResult =
-  | { ok: true; status: "created" | "already_registered" }
-  | { ok: false; reason: "invalid_email" | "not_configured" | "network" };
+  | { ok: true; status: "created" }
+  | {
+      ok: false;
+      reason: "invalid_email" | "not_configured" | "network" | "already_registered";
+      message?: string;
+    };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 const TIMEOUT_MS = 12000;
@@ -34,6 +40,7 @@ export function isValidEmail(email: string) {
 const envEndpoint = (import.meta.env["VITE_WAITLIST_ENDPOINT"] as string | undefined)?.trim();
 const endpoint = envEndpoint || WAITLIST_SCRIPT_URL;
 const mock = String(import.meta.env["VITE_WAITLIST_MOCK"] ?? "") === "true";
+const mockRegistered = new Set<string>();
 
 export const waitlistConfigured = Boolean(endpoint) || mock;
 
@@ -48,23 +55,32 @@ function utmParams() {
   return out;
 }
 
-function parseScriptPayload(text: string): { ok?: boolean; status?: string } | null {
+function parseScriptPayload(text: string): { ok?: boolean; status?: string; message?: string; code?: number } | null {
   try {
-    return JSON.parse(text) as { ok?: boolean; status?: string };
+    return JSON.parse(text) as { ok?: boolean; status?: string; message?: string; code?: number };
   } catch {
     return null;
   }
 }
 
-function resultFromPayload(data: { ok?: boolean; status?: string } | null): WaitlistResult | null {
+/** Maps Apps Script JSON into a typed client result (exported for tests). */
+export function resultFromPayload(
+  data: { ok?: boolean; status?: string; message?: string; code?: number } | null,
+): WaitlistResult | null {
   if (!data) return null;
-  if (data.ok === false) return { ok: false, reason: "network" };
-  if (data.ok === true) {
+
+  if (data.status === "already_registered" || data.code === 409) {
     return {
-      ok: true,
-      status: data.status === "already_registered" ? "already_registered" : "created",
+      ok: false,
+      reason: "already_registered",
+      message: data.message?.trim() || WAITLIST_ALREADY_MESSAGE,
     };
   }
+
+  if (data.ok === false) return { ok: false, reason: "network" };
+
+  if (data.ok === true) return { ok: true, status: "created" };
+
   return null;
 }
 
@@ -90,6 +106,10 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
 
   if (mock) {
     await new Promise((r) => setTimeout(r, 700));
+    if (mockRegistered.has(email)) {
+      return { ok: false, reason: "already_registered", message: WAITLIST_ALREADY_MESSAGE };
+    }
+    mockRegistered.add(email);
     return { ok: true, status: "created" };
   }
 

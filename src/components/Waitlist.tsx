@@ -4,6 +4,7 @@ import { Reveal } from "./Reveal";
 import {
   isValidEmail,
   submitWaitlist,
+  WAITLIST_ALREADY_MESSAGE,
   waitlistConfigured,
   type WaitlistRole,
 } from "@/lib/waitlist";
@@ -11,7 +12,7 @@ import {
 type Status =
   | { kind: "idle" }
   | { kind: "submitting" }
-  | { kind: "success"; already: boolean }
+  | { kind: "success" }
   | { kind: "error"; message: string };
 
 const ROLES: WaitlistRole[] = ["Developer", "Student", "Founder / Team", "Other"];
@@ -40,9 +41,14 @@ export function Waitlist() {
     setStatus({ kind: "submitting" });
     const result = await submitWaitlist({ email, role, website });
     if (result.ok) {
-      setStatus({ kind: "success", already: result.status === "already_registered" });
+      setStatus({ kind: "success" });
       setEmail("");
       setRole("");
+    } else if (result.reason === "already_registered") {
+      setStatus({
+        kind: "error",
+        message: result.message ?? WAITLIST_ALREADY_MESSAGE,
+      });
     } else {
       setStatus({
         kind: "error",
@@ -140,9 +146,7 @@ export function Waitlist() {
                     className="mt-3 flex items-center gap-2 text-sm text-success"
                   >
                     <Check />
-                    {status.already
-                      ? "You're already on the list. We'll keep you posted."
-                      : "You're on the list. We'll keep you posted."}
+                    You&apos;re on the list. We&apos;ll keep you posted.
                   </motion.p>
                 )}
                 {status.kind === "error" && (

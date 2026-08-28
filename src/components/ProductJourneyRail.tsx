@@ -1,10 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import {
-  JOURNEY_GROUPS,
-  PRODUCT_JOURNEY,
-  scrollToStep,
-  useJourneyPosition,
-} from "@/lib/journey";
+import { JOURNEY_GROUPS, PRODUCT_JOURNEY, scrollToStep, useJourneyPosition } from "@/lib/journey";
 
 /**
  * One page-level rail for the whole product journey. It is visible only
@@ -61,7 +56,9 @@ export function ProductJourneyRail() {
                           aria-hidden="true"
                           className={
                             "inline-block h-px shrink-0 transition-all duration-300 group-hover:bg-teal motion-reduce:transition-none " +
-                            (on ? "w-[18px] bg-teal" : "w-[10px] bg-muted-foreground/40 group-hover:w-[18px]")
+                            (on
+                              ? "w-[18px] bg-teal"
+                              : "w-[10px] bg-muted-foreground/40 group-hover:w-[18px]")
                           }
                         />
                         <span className="transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none">

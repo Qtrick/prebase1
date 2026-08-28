@@ -86,7 +86,7 @@ type ViewTransitionDocument = Document & {
  * view; reduced-motion and older browsers use the same direct jump without the
  * transition.
  */
-export function jumpToSection(id: string) {
+export function jumpToSection(id: string, opts?: { transition?: boolean }) {
   const target = document.getElementById(id);
   if (!target) return;
 
@@ -112,7 +112,7 @@ export function jumpToSection(id: string) {
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const doc = document as ViewTransitionDocument;
-  if (reduce || !doc.startViewTransition) {
+  if (opts?.transition === false || reduce || !doc.startViewTransition) {
     jump();
     return;
   }
@@ -128,8 +128,6 @@ export function jumpToSection(id: string) {
 
   doc.startViewTransition(jump);
 }
-
-
 
 export function scrollToStep(step: JourneyStep, _reduce = false) {
   const y = stepTargetY(step);
@@ -193,8 +191,9 @@ export function useJourneyPosition(): JourneyPosition {
       const eTop = topOf(explore);
       const wTop = topOf(why);
       const wlTop = waitlist ? topOf(waitlist) : Number.POSITIVE_INFINITY;
+      const humanTop = wlTop;
 
-      const visible = y + vh * 0.6 >= pTop && y + vh * 0.55 < wlTop;
+      const visible = y + vh * 0.6 >= pTop && y + vh * 0.55 < humanTop;
 
       let index = -1;
       if (y + vh * 0.5 >= eTop) {

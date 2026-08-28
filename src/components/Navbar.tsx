@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import logo from "@/assets/prebase-icon.png";
-import { jumpToSection } from "@/lib/journey";
+import { NavDrawer } from "@/components/NavDrawer";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-const LINKS = [
-  { href: "#product", label: "Product" },
-  { href: "#why", label: "Workbench" },
-  { href: "#explore", label: "Explore" },
-];
+import { isHomePath, onSectionClick } from "@/lib/nav";
 
 export function Navbar() {
+  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -22,62 +18,43 @@ export function Navbar() {
   return (
     <header
       className={
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300 " +
+        "pb-site-header fixed inset-x-0 top-0 z-50 transition-all duration-300 " +
         (scrolled
           ? "border-b border-border bg-background/70 backdrop-blur-xl"
           : "border-b border-transparent")
       }
     >
-      <nav
-        aria-label="Primary"
-        className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:px-8"
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-5 focus:top-3 focus:z-[70] focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm"
       >
-        <a
-          href="#top"
-          onClick={(event) => {
-            event.preventDefault();
-            jumpToSection("top");
-          }}
-          className="flex items-center gap-2.5"
-        >
-          <img
-            src={logo}
-            alt=""
-            width={26}
-            height={26}
-            className="size-[26px] rounded-md border border-border"
-          />
-          <span className="text-[15px] font-medium tracking-tight">PreBase</span>
-        </a>
-
-        <div className="flex items-center gap-1 sm:gap-5">
-          {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={(event) => {
-                event.preventDefault();
-                jumpToSection(l.href.slice(1));
-              }}
-              className="group relative hidden px-1 py-1 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground sm:block"
-            >
-              {l.label}
-              <span className="absolute inset-x-1 -bottom-0.5 h-px origin-left scale-x-0 bg-foreground/40 transition-transform duration-200 group-hover:scale-x-100" />
-            </a>
-          ))}
+        Skip to content
+      </a>
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-3 sm:px-6">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <NavDrawer open={open} onOpenChange={setOpen} />
           <a
-            href="#waitlist"
+            href="/"
             onClick={(event) => {
-              event.preventDefault();
-              jumpToSection("waitlist");
+              if (typeof window !== "undefined" && isHomePath(window.location.pathname)) {
+                onSectionClick(event, "top");
+              }
             }}
-            className="inline-flex items-center rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
+            className="flex items-center gap-2.5 rounded-md px-1.5 py-1"
           >
-            Join Waitlist
+            <img
+              src={logo}
+              alt=""
+              width={26}
+              height={26}
+              className="size-[26px] rounded-md border border-border"
+            />
+            <span className="text-[15px] font-medium tracking-tight">PreBase</span>
           </a>
-          <ThemeToggle />
         </div>
-      </nav>
+
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

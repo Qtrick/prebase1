@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "motion/react";
-import { jumpToSection } from "@/lib/journey";
+import { onSectionClick, sectionHref } from "@/lib/nav";
 
 export function Hero() {
   const reduce = useReducedMotion();
@@ -15,10 +15,7 @@ export function Hero() {
   });
 
   return (
-    <section
-      id="top"
-      className="relative flex min-h-[100svh] items-center pb-24 pt-28 sm:pt-32"
-    >
+    <section id="top" className="relative flex min-h-[100svh] items-center pb-24 pt-28 sm:pt-32">
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <motion.p
@@ -37,28 +34,26 @@ export function Hero() {
             {...rise(0.18)}
             className="mx-auto mt-5 max-w-xl text-balance text-[15px] leading-relaxed text-muted-foreground sm:text-base"
           >
-            See how your codebase fits together, follow how it changes over time, and give agents
-            the context to work across it.
+            See how the system fits together, follow how it changed, and give agents the context to
+            work across it.
           </motion.p>
           <motion.div
             {...rise(0.27)}
             className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
           >
             <a
-              href="#waitlist"
-              onClick={(event) => {
-                event.preventDefault();
-                jumpToSection("waitlist");
-              }}
+              href={sectionHref("waitlist")}
+              onClick={(event) => onSectionClick(event, "waitlist")}
               className="pb-shine group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
             >
-              Join the Waitlist
+              Join the waitlist
               <span className="transition-transform duration-200 group-hover:translate-x-[3px]">
                 →
               </span>
             </a>
             <a
-              href="#product"
+              href={sectionHref("product")}
+              onClick={(event) => onSectionClick(event, "product")}
               className="inline-flex items-center justify-center rounded-md border border-border-strong bg-surface-1 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-surface-2"
             >
               Explore PreBase

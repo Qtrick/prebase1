@@ -51,8 +51,8 @@ export function Playground() {
           </span>
           <h2 className="mt-2 text-[clamp(1.6rem,3vw,2.25rem)] font-medium">Explore the map.</h2>
           <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-muted-foreground">
-            Now take control. Change the layout, inspect relationships, move through history, and
-            send graph context to an Agent.
+            Take control of the same map. Change the layout, inspect relationships, move through
+            history, and send graph context to an Agent.
           </p>
         </Reveal>
 
@@ -149,13 +149,8 @@ export function Playground() {
           {/* controls + details */}
           <div className="grid gap-3 sm:grid-cols-2 sm:items-start lg:grid-cols-1">
             <div className="hidden rounded-xl border border-border bg-surface-1 p-3 sm:block">
-
               <p className="text-[10px] tracking-[0.14em] text-muted-foreground">LAYOUT</p>
-              <div
-                role="group"
-                aria-label="Network layout"
-                className="mt-2 flex flex-wrap gap-1.5"
-              >
+              <div role="group" aria-label="Network layout" className="mt-2 flex flex-wrap gap-1.5">
                 {LAYOUTS.map((l) => (
                   <button
                     key={l}
@@ -232,9 +227,9 @@ export function Playground() {
             </div>
 
             <p className="font-mono text-[10px] text-muted-foreground/70 sm:col-span-2 lg:col-span-1">
-              Interactive PreBase model · illustrative data
+              Interactive model of the current PreBase desktop workbench. Illustrative repository
+              data.
             </p>
-
           </div>
         </div>
       </div>

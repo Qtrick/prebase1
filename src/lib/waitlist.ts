@@ -8,6 +8,7 @@
 
 import { WAITLIST_SCRIPT_URL } from "./waitlist-config";
 import { TURNSTILE_SITE_KEY } from "./turnstile-config";
+import { WAITLIST_HONEYPOT_FIELD } from "./site";
 
 export type WaitlistRole = "" | "Developer" | "Student" | "Founder / Team" | "Other";
 
@@ -27,11 +28,7 @@ export type WaitlistResult =
   | {
       ok: false;
       reason:
-        | "invalid_email"
-        | "not_configured"
-        | "network"
-        | "already_registered"
-        | "captcha_failed";
+        "invalid_email" | "not_configured" | "network" | "already_registered" | "captcha_failed";
       message?: string;
     };
 
@@ -64,7 +61,9 @@ function utmParams() {
   return out;
 }
 
-function parseScriptPayload(text: string): { ok?: boolean; status?: string; message?: string; code?: number } | null {
+function parseScriptPayload(
+  text: string,
+): { ok?: boolean; status?: string; message?: string; code?: number } | null {
   try {
     return JSON.parse(text) as { ok?: boolean; status?: string; message?: string; code?: number };
   } catch {
@@ -104,7 +103,12 @@ export function resultFromPayload(
 /** True when the Apps Script web app is publicly reachable. */
 async function isScriptReachable(signal: AbortSignal): Promise<boolean> {
   try {
-    const res = await fetch(endpoint, { method: "GET", signal, redirect: "follow", credentials: "omit" });
+    const res = await fetch(endpoint, {
+      method: "GET",
+      signal,
+      redirect: "follow",
+      credentials: "omit",
+    });
     const data = parseScriptPayload(await res.text());
     return res.ok && data?.ok === true;
   } catch {
@@ -144,7 +148,7 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
     ...utmParams(),
     page_url: typeof window === "undefined" ? "" : window.location.href,
     referrer: typeof document === "undefined" ? "" : document.referrer,
-    website: "",
+    [WAITLIST_HONEYPOT_FIELD]: "",
     "cf-turnstile-response": turnstileToken,
   });
 

@@ -104,7 +104,11 @@ export function isLoopStartState(state: TourVisualState) {
 }
 
 /** Representative reduced-motion state: same information, no roaming cursor. */
-export function reducedMotionState(promptLength: number, responseLength: number, actionCount: number): TourVisualState {
+export function reducedMotionState(
+  promptLength: number,
+  responseLength: number,
+  actionCount: number,
+): TourVisualState {
   return {
     selectedFile: "graph",
     selectedNode: "graph",
@@ -154,8 +158,52 @@ export type TourPhaseId =
 export type TourTiming = {
   promptLength: number;
   responseLength: number;
+  responseText: string;
   actions: readonly DemoAgentAction[];
+  compact?: boolean;
 };
+
+/**
+ * Comprehension dwells: stillness AFTER a visual change, before the next
+ * attention cue. These are not cursor-travel times.
+ */
+export const HERO_DWELL = {
+  enter: 360,
+  fileSelected: 920,
+  fileSelectedCompact: 1000,
+  networkRelationship: 1020,
+  temporalEntered: 880,
+  temporalEnteredCompact: 940,
+  temporalCommit: 1100,
+  temporalCommitCompact: 1180,
+  /** Micro-pauses so a click reads as a click, not comprehension beats. */
+  preClick: 50,
+  afterFocus: 140,
+  afterSend: 80,
+  afterNewAgentClick: 80,
+  settleAgent: 180,
+  afterNetworkClick: 420,
+  settleNetwork: 220,
+  afterHome: 80,
+  loop: 280,
+} as const;
+
+/**
+ * Cursor travel. Keep these relatively quick — dwell around them, do not
+ * inflate them.
+ */
+export const HERO_MOVE = {
+  file: 520,
+  graph: 620,
+  temporal: 480,
+  temporalCompact: 400,
+  commit: 440,
+  agent: 560,
+  send: 260,
+  newAgent: 480,
+  network: 500,
+  home: 480,
+} as const;
 
 export type TourPhase = {
   id: TourPhaseId;
@@ -192,22 +240,22 @@ const FULL: TourPhase[] = [
     id: "enter",
     target: null,
     moveMs: 0,
-    dwellMs: 360,
+    dwellMs: HERO_DWELL.enter,
     park: true,
     apply: set({ ...LOOP_START_STATE }),
   },
   {
     id: "moveToFile",
     target: HERO_TARGETS.fileGraphService,
-    moveMs: 520,
-    dwellMs: 60,
+    moveMs: HERO_MOVE.file,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ activity: "explorer", cursorVisible: true }),
   },
   {
     id: "selectFile",
     target: HERO_TARGETS.fileGraphService,
     moveMs: 0,
-    dwellMs: 480,
+    dwellMs: HERO_DWELL.fileSelected,
     click: true,
     apply: set({
       selectedFile: "graph",
@@ -218,30 +266,30 @@ const FULL: TourPhase[] = [
   {
     id: "moveToNode",
     target: HERO_TARGETS.networkNodeParser,
-    moveMs: 620,
-    dwellMs: 60,
+    moveMs: HERO_MOVE.graph,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ activity: "graph" }),
   },
   {
     id: "selectNode",
     target: HERO_TARGETS.networkNodeParser,
     moveMs: 0,
-    dwellMs: 720,
+    dwellMs: HERO_DWELL.networkRelationship,
     click: true,
     apply: set({ selectedNode: "parser", activity: "graph" }),
   },
   {
     id: "moveToTemporal",
     target: HERO_TARGETS.temporalToggle,
-    moveMs: 480,
-    dwellMs: 50,
+    moveMs: HERO_MOVE.temporal,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ activity: "graph" }),
   },
   {
     id: "switchTemporal",
     target: HERO_TARGETS.temporalToggle,
     moveMs: 0,
-    dwellMs: 640,
+    dwellMs: HERO_DWELL.temporalEntered,
     click: true,
     apply: set({
       mode: "temporal",
@@ -254,30 +302,30 @@ const FULL: TourPhase[] = [
   {
     id: "moveToCommit",
     target: HERO_TARGETS.temporalCommit,
-    moveMs: 440,
-    dwellMs: 50,
+    moveMs: HERO_MOVE.commit,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ mode: "temporal" }),
   },
   {
     id: "selectCommit",
     target: HERO_TARGETS.temporalCommit,
     moveMs: 0,
-    dwellMs: 820,
+    dwellMs: HERO_DWELL.temporalCommit,
     click: true,
     apply: set({ commit: TEMPORAL_TO_COMMIT, mode: "temporal" }),
   },
   {
     id: "moveToAgent",
     target: HERO_TARGETS.agentInput,
-    moveMs: 560,
-    dwellMs: 40,
+    moveMs: HERO_MOVE.agent,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ activity: "agent" }),
   },
   {
     id: "focusAgent",
     target: HERO_TARGETS.agentInput,
     moveMs: 0,
-    dwellMs: 140,
+    dwellMs: HERO_DWELL.afterFocus,
     click: true,
     apply: set({ agentFocused: true, activity: "agent", typedChars: 0 }),
   },
@@ -297,8 +345,8 @@ const FULL: TourPhase[] = [
   {
     id: "send",
     target: HERO_TARGETS.agentSend,
-    moveMs: 260,
-    dwellMs: 80,
+    moveMs: HERO_MOVE.send,
+    dwellMs: HERO_DWELL.afterSend,
     click: true,
     apply: set({ sent: true, agentFocused: false, typedChars: 0, streamedChars: 0 }),
   },
@@ -343,15 +391,15 @@ const FULL: TourPhase[] = [
   {
     id: "moveToNewAgent",
     target: HERO_TARGETS.agentNew,
-    moveMs: 480,
-    dwellMs: 40,
+    moveMs: HERO_MOVE.newAgent,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ activity: "agent", cursorVisible: true }),
   },
   {
     id: "clickNewAgent",
     target: HERO_TARGETS.agentNew,
     moveMs: 0,
-    dwellMs: 80,
+    dwellMs: HERO_DWELL.afterNewAgentClick,
     click: true,
     apply: (state) => ({
       ...state,
@@ -364,21 +412,21 @@ const FULL: TourPhase[] = [
     id: "settleAgent",
     target: HERO_TARGETS.agentNew,
     moveMs: 0,
-    dwellMs: 180,
+    dwellMs: HERO_DWELL.settleAgent,
     apply: (state) => ({ ...state, ...FRESH_AGENT, activity: "agent" }),
   },
   {
     id: "moveToNetwork",
     target: HERO_TARGETS.networkToggle,
-    moveMs: 500,
-    dwellMs: 40,
+    moveMs: HERO_MOVE.network,
+    dwellMs: HERO_DWELL.preClick,
     apply: set({ activity: "graph" }),
   },
   {
     id: "switchNetwork",
     target: HERO_TARGETS.networkToggle,
     moveMs: 0,
-    dwellMs: 420,
+    dwellMs: HERO_DWELL.afterNetworkClick,
     click: true,
     apply: set({
       mode: "network",
@@ -392,7 +440,7 @@ const FULL: TourPhase[] = [
     id: "settleNetwork",
     target: HERO_TARGETS.networkToggle,
     moveMs: 0,
-    dwellMs: 220,
+    dwellMs: HERO_DWELL.settleNetwork,
     apply: set({
       mode: "network",
       commit: NETWORK_COMMIT,
@@ -405,8 +453,8 @@ const FULL: TourPhase[] = [
   {
     id: "cursorHome",
     target: null,
-    moveMs: 480,
-    dwellMs: 80,
+    moveMs: HERO_MOVE.home,
+    dwellMs: HERO_DWELL.afterHome,
     park: true,
     apply: set({ ...LOOP_START_STATE }),
   },
@@ -414,18 +462,22 @@ const FULL: TourPhase[] = [
     id: "loopDwell",
     target: null,
     moveMs: 0,
-    dwellMs: 280,
+    dwellMs: HERO_DWELL.loop,
     park: true,
     apply: set({ ...LOOP_START_STATE }),
   },
 ];
 
 /** Narrow screens: file → graph → temporal → agent, then the same closed return. */
-const COMPACT: TourPhase[] = FULL.filter((p) => p.id !== "moveToNode" && p.id !== "selectNode").map((p) => {
-  if (p.id === "selectFile") return { ...p, dwellMs: 560 };
-  if (p.id === "moveToTemporal") return { ...p, moveMs: 400 };
-  return p;
-});
+const COMPACT: TourPhase[] = FULL.filter((p) => p.id !== "moveToNode" && p.id !== "selectNode").map(
+  (p) => {
+    if (p.id === "selectFile") return { ...p, dwellMs: HERO_DWELL.fileSelectedCompact };
+    if (p.id === "switchTemporal") return { ...p, dwellMs: HERO_DWELL.temporalEnteredCompact };
+    if (p.id === "selectCommit") return { ...p, dwellMs: HERO_DWELL.temporalCommitCompact };
+    if (p.id === "moveToTemporal") return { ...p, moveMs: HERO_MOVE.temporalCompact };
+    return { ...p };
+  },
+);
 
 export function phasesFor(compact: boolean): TourPhase[] {
   return compact ? COMPACT : FULL;
@@ -440,11 +492,13 @@ export function typeDuration(promptLength: number) {
 
 export function phaseDuration(phase: TourPhase, timing: TourTiming | number) {
   const ctx: TourTiming =
-    typeof timing === "number" ? { promptLength: timing, responseLength: 0, actions: [] } : timing;
+    typeof timing === "number"
+      ? { promptLength: timing, responseLength: 0, responseText: "", actions: [] }
+      : timing;
   if (phase.type) return typeDuration(ctx.promptLength);
   if (phase.actions) return actionsDuration(ctx.actions);
   if (phase.stream) return streamDuration(ctx.responseLength);
-  if (phase.hold) return holdDuration(ctx.responseLength);
+  if (phase.hold) return holdDuration(ctx.responseText, Boolean(ctx.compact));
   return phase.moveMs + (phase.click ? CLICK_MS : 0) + phase.dwellMs;
 }
 
@@ -488,7 +542,10 @@ export function parkPoint(file: Point): Point {
   return { x: file.x + CURSOR_PARK.x, y: file.y + CURSOR_PARK.y };
 }
 
-export function applyActionSnapshot(state: TourVisualState, snap: AgentRunSnapshot): TourVisualState {
+export function applyActionSnapshot(
+  state: TourVisualState,
+  snap: AgentRunSnapshot,
+): TourVisualState {
   return {
     ...state,
     actionIndex: snap.activeIndex,
@@ -504,7 +561,7 @@ export type TourClockHandlers = {
   onCursor: (x: number, y: number, clicking: boolean, opacity: number) => void;
   measure: (target: HeroTarget | null) => Point;
   promptLength: () => number;
-  responseLength: () => number;
+  responseText: () => string;
   actions: () => readonly DemoAgentAction[];
   compact: () => boolean;
 };
@@ -568,6 +625,10 @@ export class HeroTourClock {
   remeasure() {
     const phase = this.phases[this.index];
     if (!phase) return;
+    if (phase.hold) {
+      this.to = { ...this.from };
+      return;
+    }
     const next = this.targetPoint(phase);
     this.from = next;
     this.to = next;
@@ -618,11 +679,13 @@ export class HeroTourClock {
       }
     }
 
-    const moving = phase.moveMs > 0 && t < phase.moveMs;
+    // Hold is a reading beat: never interpolate toward a later target.
+    const moving = !phase.hold && phase.moveMs > 0 && t < phase.moveMs;
     const p = moving ? easeCursor(t / phase.moveMs) : 1;
     const x = this.from.x + (this.to.x - this.from.x) * p;
     const y = this.from.y + (this.to.y - this.from.y) * p;
-    const clicking = Boolean(phase.click) && t >= phase.moveMs && t < phase.moveMs + CLICK_MS;
+    const clicking =
+      Boolean(phase.click) && !phase.hold && t >= phase.moveMs && t < phase.moveMs + CLICK_MS;
     this.handlers.onCursor(x, y, clicking, this.visual.cursorVisible ? 1 : 0);
 
     if (t >= duration) {
@@ -631,10 +694,13 @@ export class HeroTourClock {
   }
 
   private timing(): TourTiming {
+    const responseText = this.handlers.responseText();
     return {
       promptLength: this.handlers.promptLength(),
-      responseLength: this.handlers.responseLength(),
+      responseLength: responseText.length,
+      responseText,
       actions: this.handlers.actions(),
+      compact: this.handlers.compact(),
     };
   }
 
@@ -653,6 +719,9 @@ export class HeroTourClock {
     const timing = this.timing();
     this.from = { ...this.to };
     this.to = this.targetPoint(phase);
+    if (phase.hold) {
+      this.to = { ...this.from };
+    }
 
     if (this.appliedPhase !== phase.id) {
       this.visual = phase.apply(this.visual, timing);

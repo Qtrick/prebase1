@@ -11,7 +11,12 @@ import {
   type ChatMessage,
 } from "@/lib/agent-demo";
 import { IDLE_RUN, scheduleActions, scheduleStream, type AgentRunSnapshot } from "@/lib/agent-run";
-import { questionForPrompt, useDemoQuestion, type DemoAgentAction, type DemoSurface } from "@/lib/demo-questions";
+import {
+  questionForPrompt,
+  useDemoQuestion,
+  type DemoAgentAction,
+  type DemoSurface,
+} from "@/lib/demo-questions";
 
 let uid = 0;
 const nextId = () => `m${++uid}`;
@@ -43,7 +48,7 @@ export function AgentsPanel({
 
   // Fall back to the selected node's direct edges so the header never claims
   // "+0 connected files" for a node that clearly has relationships.
-  const ids = contextIds ?? (selected ? NEIGHBORS[selected] ?? [] : []);
+  const ids = contextIds ?? (selected ? (NEIGHBORS[selected] ?? []) : []);
   const related = ids.filter((id) => id !== selected);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
@@ -58,7 +63,11 @@ export function AgentsPanel({
     setStreaming(false);
   };
   const later = (fn: () => void, ms: number) => {
-    timers.current.push(setTimeout(fn, ms));
+    const id = setTimeout(() => {
+      timers.current = timers.current.filter((queued) => queued !== id);
+      fn();
+    }, ms);
+    timers.current.push(id);
   };
 
   // Cancel in-flight streaming when the context or mode changes, or on unmount.

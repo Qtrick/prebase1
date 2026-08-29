@@ -113,7 +113,7 @@ export function HeroDemo() {
     const clock = new HeroTourClock({
       compact: () => compact,
       promptLength: () => question.prompt.length,
-      responseLength: () => question.response.length,
+      responseText: () => question.response,
       actions: () => question.actions,
       measure: (target) => {
         if (!target) return { x: 28, y: 36 };

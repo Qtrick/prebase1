@@ -189,6 +189,7 @@ export function ScrollStory() {
       active={Boolean(selected)}
       compact
       chat
+      surface="product"
     />
   );
 

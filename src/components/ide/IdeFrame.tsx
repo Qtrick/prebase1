@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { NODES } from "@/lib/demo-graph";
+import { EXPLORER, NODES } from "@/lib/demo-graph";
 import type { GraphMode } from "@/components/graph/DemoGraph";
 
 /** Small SSR-safe media query hook used for responsive IDE chrome sizing. */
@@ -16,21 +16,6 @@ function useMediaQuery(query: string) {
   return matches;
 }
 
-
-/** Files shown in the "PreBase Maps" explorer, derived from the demo model. */
-const EXPLORER: Array<{ id?: string; name: string; depth: number; dir?: boolean }> = [
-  { name: "src", depth: 0, dir: true },
-  { id: "app", name: "app.tsx", depth: 1 },
-  { id: "auth", name: "auth.ts", depth: 1 },
-  { name: "graph", depth: 1, dir: true },
-  { id: "graph", name: "graphService.ts", depth: 2 },
-  { id: "parser", name: "parser.ts", depth: 2 },
-  { id: "indexer", name: "indexer.ts", depth: 2 },
-  { id: "depIndex", name: "dependencyIndex.ts", depth: 2 },
-  { id: "temporalStore", name: "temporalStore.ts", depth: 2 },
-  { id: "api", name: "api.ts", depth: 1 },
-  { id: "runtime", name: "runtime.ts", depth: 1 },
-];
 
 export function ModeToggle({
   mode,

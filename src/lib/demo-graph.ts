@@ -116,6 +116,21 @@ export const NODE_BY_ID: Record<string, DemoNode> = Object.fromEntries(
   NODES.map((n) => [n.id, n]),
 );
 
+/** Compact explorer tree shown in the hero and IDE frames. */
+export const EXPLORER: Array<{ id?: string; name: string; depth: number; dir?: boolean }> = [
+  { name: "src", depth: 0, dir: true },
+  { id: "app", name: "app.tsx", depth: 1 },
+  { id: "auth", name: "auth.ts", depth: 1 },
+  { name: "graph", depth: 1, dir: true },
+  { id: "graph", name: "graphService.ts", depth: 2 },
+  { id: "parser", name: "parser.ts", depth: 2 },
+  { id: "indexer", name: "indexer.ts", depth: 2 },
+  { id: "depIndex", name: "dependencyIndex.ts", depth: 2 },
+  { id: "temporalStore", name: "temporalStore.ts", depth: 2 },
+  { id: "api", name: "api.ts", depth: 1 },
+  { id: "runtime", name: "runtime.ts", depth: 1 },
+];
+
 export const NEIGHBORS: Record<string, string[]> = (() => {
   const m: Record<string, string[]> = {};
   for (const n of NODES) m[n.id] = [];

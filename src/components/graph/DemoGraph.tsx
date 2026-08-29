@@ -783,6 +783,7 @@ function Node({
     <motion.g style={{ opacity: revealOpacity }}>
       <motion.g
         data-node={node.id}
+        data-demo-target={`network-node-${node.id}`}
         initial={false}
         animate={{ x: pos.x, y: pos.y, opacity: visible ? emphasis : 0 }}
         transition={spring}

@@ -64,43 +64,6 @@ function groupByCategory(ids: string[]) {
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-/** Mode-aware prompt suggestions, node specific where possible. */
-export function suggestionsFor(id: string | null, mode: AgentMode = "Ask"): string[] {
-  if (!id) {
-    return mode === "Ask"
-      ? ["What is the Code Graph?", "How does the Temporal Graph work?", "What loads as context?"]
-      : mode === "Edit"
-        ? ["Select a file to edit", "How is change scope decided?", "What stays untouched?"]
-        : ["Select a file to plan against", "How are modules verified?", "What gets re-indexed?"];
-  }
-  const label = NODE_BY_ID[id]?.label ?? id;
-
-  if (mode === "Edit") {
-    return [
-      `Update ${label} safely`,
-      "Include its direct dependents",
-      "Prepare the smallest change",
-    ];
-  }
-  if (mode === "Agent") {
-    return ["Trace and fix the issue", "Verify the affected modules", "Make the change and test it"];
-  }
-  return [`What depends on ${label}?`, "Trace its relationships", "What changes if I edit this?"];
-}
-
-/** Explore-specific suggestions, different from the guided story set. */
-export function exploreSuggestionsFor(id: string | null): string[] {
-  if (!id) {
-    return ["What is the Code Graph?", "How do layouts work?", "What can the Agent do?"];
-  }
-  const label = NODE_BY_ID[id]?.label ?? id;
-  return [
-    `Explain what ${label} does`,
-    `Find usages of ${label}`,
-    `Trace paths from ${label} to the entry point`,
-  ];
-}
-
 /** Short pre-response activity steps, mode aware. */
 export function activityFor(mode: AgentMode, id: string | null): string[] {
   const n = NEIGHBORS[id ?? ""]?.length ?? 0;

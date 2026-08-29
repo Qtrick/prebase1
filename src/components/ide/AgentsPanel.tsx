@@ -6,12 +6,11 @@ import {
   STREAM_CHARS_PER_TICK,
   STREAM_INTERVAL_MS,
   activityFor,
-  exploreSuggestionsFor,
   replyFor,
-  suggestionsFor,
   type AgentMode,
   type ChatMessage,
 } from "@/lib/agent-demo";
+import { responseForPrompt, useDemoQuestion, type DemoSurface } from "@/lib/demo-questions";
 
 let uid = 0;
 const nextId = () => `m${++uid}`;
@@ -22,7 +21,7 @@ export function AgentsPanel({
   active = false,
   compact = false,
   chat = false,
-  variant = "guided",
+  surface = "product",
 }: {
   contextIds: string[] | null;
   selected: string | null;
@@ -30,8 +29,8 @@ export function AgentsPanel({
   compact?: boolean;
   /** enable the functional deterministic chat demo */
   chat?: boolean;
-  /** which suggestion set to show in chat mode */
-  variant?: "guided" | "explore";
+  /** which of the three canonical surfaces this panel belongs to */
+  surface?: DemoSurface;
 }) {
   const reduce = useReducedMotion();
   const [mode, setMode] = useState<AgentMode>("Ask");
@@ -83,7 +82,7 @@ export function AgentsPanel({
     setMessages((m) => [...m, { id: nextId(), role: "user", text: value }]);
 
     const steps = activityFor(mode, selected);
-    const answer = replyFor(mode, selected, value);
+    const answer = responseForPrompt(value) ?? replyFor(mode, selected, value);
 
     if (reduce) {
       setActivity(steps[0] ?? null);
@@ -124,18 +123,8 @@ export function AgentsPanel({
     );
   }
 
-  const allSuggestions =
-    variant === "explore" ? exploreSuggestionsFor(selected) : suggestionsFor(selected, mode);
-  const [questionIndex, setQuestionIndex] = useState(0);
-
-  // Randomize the suggested question once after hydration so server and client
-  // render match on the first paint, avoiding a hydration mismatch.
-  useEffect(() => {
-    setQuestionIndex(Math.max(0, Math.floor(Math.random() * allSuggestions.length)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const question = allSuggestions[questionIndex] ?? allSuggestions[0] ?? "Ask about this file";
+  const assigned = useDemoQuestion(surface);
+  const question = assigned?.prompt ?? "";
 
   return (
     <div className="flex h-full min-h-0 flex-col text-[12.5px]">
@@ -175,7 +164,13 @@ export function AgentsPanel({
         )}
 
         {!chat ? (
-          <StaticPreview mode={mode} count={related.length} compact={compact} related={related} />
+          <StaticPreview
+            mode={mode}
+            count={related.length}
+            compact={compact}
+            related={related}
+            prompt={question}
+          />
         ) : (
           <>
             <div
@@ -235,14 +230,18 @@ export function AgentsPanel({
               <span className="text-[10px] tracking-[0.14em] text-muted-foreground/70">
                 SUGGESTED
               </span>
-              <button
-                type="button"
-                disabled={streaming}
-                onClick={() => send(question)}
-                className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-2 text-left text-[12.5px] leading-[1.45] text-foreground/90 transition-all duration-200 hover:translate-x-0.5 hover:border-border-strong hover:bg-surface-2 hover:text-foreground disabled:opacity-40"
-              >
-                {question}
-              </button>
+              {question ? (
+                <button
+                  type="button"
+                  disabled={streaming}
+                  onClick={() => send(question)}
+                  className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-2 text-left text-[12.5px] leading-[1.45] text-foreground/90 transition-all duration-200 hover:translate-x-0.5 hover:border-border-strong hover:bg-surface-2 hover:text-foreground disabled:opacity-40"
+                >
+                  {question}
+                </button>
+              ) : (
+                <div className="h-[42px] rounded-md border border-border bg-surface-2/40" />
+              )}
             </div>
           </>
         )}
@@ -256,18 +255,15 @@ function StaticPreview({
   count,
   compact,
   related,
+  prompt,
 }: {
   mode: AgentMode;
   count: number;
   compact: boolean;
   related: string[];
+  prompt: string;
 }) {
-  const prompt =
-    mode === "Ask"
-      ? "What depends on this service?"
-      : mode === "Edit"
-        ? "Update this service and its direct dependents."
-        : "Trace the affected modules, make the change, and verify it.";
+  const shown = prompt || (mode === "Ask" ? "Ask about this file" : "Prepare a change");
   const answer =
     mode === "Ask"
       ? `${count} connected modules`
@@ -277,7 +273,7 @@ function StaticPreview({
   return (
     <div className="space-y-2">
       <div className="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-foreground/85">
-        {prompt}
+        {shown}
       </div>
       <div className="rounded-md border border-teal/25 bg-teal/[0.07] px-2 py-1.5 font-mono text-teal">
         {answer}

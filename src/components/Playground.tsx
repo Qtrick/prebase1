@@ -77,7 +77,7 @@ export function Playground() {
                 selected={selected}
                 active={Boolean(contextIds)}
                 chat
-                variant="explore"
+                surface="explore"
               />
             }
             toolbar={

@@ -9,6 +9,7 @@ import {
   assignmentFromOrder,
   parseStoredOrder,
   questionById,
+  questionForPrompt,
   resetQuestionOrderCache,
   resolveQuestionOrder,
   responseForPrompt,
@@ -45,8 +46,36 @@ describe("canonical demo questions", () => {
     for (const q of DEMO_QUESTIONS) {
       expect(questionById(q.id).response).toBe(q.response);
       expect(responseForPrompt(q.prompt)).toBe(q.response);
+      expect(questionForPrompt(q.prompt)?.actions).toBe(q.actions);
     }
     expect(responseForPrompt("not a canonical question")).toBeNull();
+    expect(questionForPrompt("not a canonical question")).toBeNull();
+  });
+
+  it("gives each question its own 2–4 observable actions", () => {
+    const labels = DEMO_QUESTIONS.map((q) => q.actions.map((a) => a.label).join("|"));
+    expect(new Set(labels).size).toBe(3);
+    for (const q of DEMO_QUESTIONS) {
+      expect(q.actions.length).toBeGreaterThanOrEqual(2);
+      expect(q.actions.length).toBeLessThanOrEqual(4);
+      expect(new Set(q.actions.map((a) => a.id)).size).toBe(q.actions.length);
+      for (const action of q.actions) {
+        expect(action.label).toMatch(/^(Searching|Reading|Inspecting|Checking|Running|Reviewing)\b/);
+        expect(action.label).not.toMatch(/thinking|reasoning|considering|deciding|i think/i);
+      }
+    }
+  });
+
+  it("keeps question, actions, and response tied together across surfaces", () => {
+    const order: DemoQuestionId[] = ["temporal-graph", "agent-context", "code-graph"];
+    const home = assignedQuestion("home", order);
+    const product = assignedQuestion("product", order);
+    const explore = assignedQuestion("explore", order);
+    expect(home.actions).toBe(questionById("temporal-graph").actions);
+    expect(home.response).toBe(questionById("temporal-graph").response);
+    expect(product.actions).toBe(questionById("agent-context").actions);
+    expect(explore.actions).toBe(questionById("code-graph").actions);
+    expect(home.actions[0]?.id).not.toBe(product.actions[0]?.id);
   });
 });
 

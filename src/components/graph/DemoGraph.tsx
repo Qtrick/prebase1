@@ -17,6 +17,7 @@ import {
   STATUS_COLOR,
   VIEW,
   labelAt,
+  networkFitScale,
   radiusOf,
   statusAt,
   temporalDescription,
@@ -202,13 +203,7 @@ export function DemoGraph({
     }
     const bw = Math.max(1, maxX - minX);
     const bh = Math.max(1, maxY - minY);
-    // Comfortable inset so nodes/labels never sit on the chrome, but the
-    // map still uses most of the pane.
-    const gutter = clamp(Math.min(viewport.w, viewport.h) * 0.08, 40, 56);
-    const s = Math.min(
-      (viewport.w - gutter * 2 - 56) / bw,
-      (viewport.h - gutter * 2 - 20) / bh,
-    );
+    const s = networkFitScale(bw, bh, viewport.w, viewport.h);
     return {
       s,
       vx: viewport.w / 2,
@@ -359,7 +354,8 @@ export function DemoGraph({
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  const FONT = narrow ? 12 : 13;
+  const compact = viewport.w < 460;
+  const FONT = compact ? 11 : narrow ? 12 : 13;
 
   /** Lower number = resolved earlier = keeps its preferred slot. */
   const priorityOf = useCallback(
@@ -379,6 +375,8 @@ export function DemoGraph({
     const candidates = NODES.filter((n) => present(n)).filter((n) => {
       if (labelAll) return true;
       const p = priorityOf(n);
+      // Hero + Product panes are too tight for weight-0 neighbor labels.
+      if (!full) return p <= 3 || (n.weight >= 1 && p <= 5);
       return narrow ? p <= 4 : p <= 5;
     });
 
@@ -418,7 +416,7 @@ export function DemoGraph({
     }
 
     return resolveLabelPlacements(items, obstacles, { w: viewport.w, h: viewport.h });
-  }, [FONT, commit, hovered, labelAll, mode, narrow, posOf, present, priorityOf, rMul, viewport.h, viewport.w]);
+  }, [FONT, commit, compact, full, hovered, labelAll, mode, narrow, posOf, present, priorityOf, rMul, viewport.h, viewport.w]);
 
   const dragRef = useRef<{
     id: string;
@@ -524,6 +522,7 @@ export function DemoGraph({
       viewBox={`0 0 ${viewport.w} ${viewport.h}`}
       width="100%"
       height="100%"
+      overflow="visible"
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
       focusable="false"
@@ -533,6 +532,7 @@ export function DemoGraph({
       onPointerCancel={onBgPointerUp}
       style={{
         display: "block",
+        overflow: "visible",
         cursor: full ? (panning ? "grabbing" : "grab") : undefined,
         touchAction: "pan-y",
       }}
@@ -829,6 +829,7 @@ function Node({
           strokeOpacity={0.85}
           strokeLinejoin="round"
           paintOrder="stroke"
+          dominantBaseline="central"
           style={{ pointerEvents: "none" }}
         >
           {label}

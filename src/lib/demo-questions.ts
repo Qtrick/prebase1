@@ -14,9 +14,16 @@ export type DemoSurface = (typeof DEMO_SURFACES)[number];
 export const DEMO_QUESTION_IDS = ["code-graph", "temporal-graph", "agent-context"] as const;
 export type DemoQuestionId = (typeof DEMO_QUESTION_IDS)[number];
 
+export type DemoAgentAction = {
+  id: string;
+  label: string;
+  durationMs?: number;
+};
+
 export type DemoQuestion = {
   id: DemoQuestionId;
   prompt: string;
+  actions: readonly DemoAgentAction[];
   response: string;
 };
 
@@ -24,23 +31,41 @@ export type DemoQuestion = {
  * The three strongest existing Ask-mode prompts from the previous suggestion
  * banks, with dedicated responses that stay truthful about the illustrative
  * demo graph (not claimed product capabilities beyond what the model shows).
+ *
+ * Action labels follow Magnus `toolActivity.ts` verb-object phrasing:
+ * observable work, never chain-of-thought.
  */
 export const DEMO_QUESTIONS: DemoQuestion[] = [
   {
     id: "code-graph",
     prompt: "What is the Code Graph?",
+    actions: [
+      { id: "cg-search", label: 'Searching Code Graph for "graphService"' },
+      { id: "cg-overview", label: "Inspecting Code Graph architecture overview" },
+      { id: "cg-deps", label: 'Inspecting outgoing dependencies for "src/graph/graphService.ts"' },
+    ],
     response:
       "The Code Graph is a map of how this repository connects. graphService.ts sits at the center of Graph core, with direct edges to parser.ts, indexer.ts, api.ts, app.tsx, views.ts, auth.ts, and temporalStore.ts. Those edges are what PreBase surfaces first.",
   },
   {
     id: "temporal-graph",
     prompt: "How does the Temporal Graph work?",
+    actions: [
+      { id: "tg-node", label: 'Inspecting Code Graph node "graphService.ts"' },
+      { id: "tg-search", label: 'Searching Code Graph for "temporalStore"' },
+      { id: "tg-later", label: 'Inspecting Code Graph node "temporalStore.ts"' },
+    ],
     response:
       "The Temporal Graph shows the same map as structural snapshots over Git history. Files appear as added, removed, modified, or renamed — temporalStore.ts appears later, cache.ts is removed, and dependencyIndex.ts is renamed from graphIndex.ts — while the surrounding codebase stays in view.",
   },
   {
     id: "agent-context",
     prompt: "What loads as context?",
+    actions: [
+      { id: "ac-read", label: "Reading src/graph/graphService.ts" },
+      { id: "ac-deps", label: 'Inspecting incoming/outgoing dependencies for "src/graph/graphService.ts"' },
+      { id: "ac-search", label: "Searching workspace code" },
+    ],
     response:
       "When a file is selected, PreBase loads it plus its connected modules. For graphService.ts that is parser.ts, indexer.ts, api.ts, app.tsx, views.ts, auth.ts, and temporalStore.ts. That subgraph is the first context an agent would receive.",
   },
@@ -60,9 +85,12 @@ export function questionById(id: DemoQuestionId): DemoQuestion {
   return QUESTION_BY_ID[id];
 }
 
+export function questionForPrompt(prompt: string): DemoQuestion | null {
+  return DEMO_QUESTIONS.find((q) => q.prompt === prompt) ?? null;
+}
+
 export function responseForPrompt(prompt: string): string | null {
-  const match = DEMO_QUESTIONS.find((q) => q.prompt === prompt);
-  return match?.response ?? null;
+  return questionForPrompt(prompt)?.response ?? null;
 }
 
 export type StorageLike = {

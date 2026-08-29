@@ -10,9 +10,10 @@ describe("canonical answers vs graph replies", () => {
     }
   });
 
-  it("does not keep a parallel suggested-question bank", () => {
+  it("does not keep a parallel suggested-question bank or CoT activity helper", () => {
     expect("suggestionsFor" in agentDemo).toBe(false);
     expect("exploreSuggestionsFor" in agentDemo).toBe(false);
+    expect("activityFor" in agentDemo).toBe(false);
   });
 
   it("still answers freeform graph questions from the selected node", () => {

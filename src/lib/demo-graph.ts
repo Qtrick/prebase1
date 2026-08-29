@@ -49,35 +49,49 @@ export type DemoNode = {
 
 export const VIEW = { w: 800, h: 520, cx: 400, cy: 260 };
 
+/**
+ * Scale that maps the layout bounding box into the graph pane.
+ * Tight enough that labels stay on-canvas; loose enough that the organic
+ * map is not a small cluster sitting in empty space.
+ */
+export function networkFitScale(bboxW: number, bboxH: number, viewportW: number, viewportH: number) {
+  const side = Math.min(viewportW, viewportH);
+  const gutter = Math.min(28, Math.max(16, side * 0.04));
+  return Math.min(
+    (viewportW - gutter * 2 - 52) / Math.max(1, bboxW),
+    (viewportH - gutter * 2 - 28) / Math.max(1, bboxH),
+  );
+}
+
 export const NODES: DemoNode[] = [
   { id: "app", label: "app.tsx", path: "src/app.tsx", category: "app", weight: 2, base: { x: 400, y: 84 }, modifiedAt: [1, 3] },
   { id: "router", label: "router.ts", path: "src/router.ts", category: "app", weight: 0, base: { x: 312, y: 140 } },
   { id: "views", label: "views.ts", path: "src/views.ts", category: "app", weight: 0, base: { x: 490, y: 142 }, modifiedAt: [2] },
 
-  { id: "auth", label: "auth.ts", path: "src/auth.ts", category: "auth", weight: 2, base: { x: 196, y: 208 } },
+  { id: "auth", label: "auth.ts", path: "src/auth.ts", category: "auth", weight: 2, base: { x: 168, y: 214 } },
   { id: "session", label: "session.ts", path: "src/auth/session.ts", category: "auth", weight: 0, base: { x: 112, y: 158 } },
   { id: "tokens", label: "tokens.ts", path: "src/auth/tokens.ts", category: "auth", weight: 0, base: { x: 118, y: 262 }, removedAt: 2 },
 
   { id: "graph", label: "graphService.ts", path: "src/graph/graphService.ts", category: "graph", weight: 2, base: { x: 400, y: 240 }, modifiedAt: [1, 3] },
-  { id: "parser", label: "parser.ts", path: "src/graph/parser.ts", category: "graph", weight: 1, base: { x: 326, y: 312 }, modifiedAt: [1] },
-  { id: "indexer", label: "indexer.ts", path: "src/graph/indexer.ts", category: "graph", weight: 1, base: { x: 474, y: 312 }, modifiedAt: [3] },
-  { id: "walker", label: "walker.ts", path: "src/graph/walker.ts", category: "graph", weight: 0, base: { x: 396, y: 366 } },
-  { id: "layouts", label: "layouts.ts", path: "src/graph/layouts.ts", category: "graph", weight: 0, base: { x: 250, y: 356 } },
-  { id: "cache", label: "cache.ts", path: "src/graph/cache.ts", category: "graph", weight: 0, base: { x: 258, y: 402 }, removedAt: 3 },
+  { id: "parser", label: "parser.ts", path: "src/graph/parser.ts", category: "graph", weight: 1, base: { x: 292, y: 308 }, modifiedAt: [1] },
+  { id: "indexer", label: "indexer.ts", path: "src/graph/indexer.ts", category: "graph", weight: 1, base: { x: 518, y: 318 }, modifiedAt: [3] },
+  { id: "walker", label: "walker.ts", path: "src/graph/walker.ts", category: "graph", weight: 0, base: { x: 400, y: 390 } },
+  { id: "layouts", label: "layouts.ts", path: "src/graph/layouts.ts", category: "graph", weight: 0, base: { x: 176, y: 292 } },
+  { id: "cache", label: "cache.ts", path: "src/graph/cache.ts", category: "graph", weight: 0, base: { x: 214, y: 428 }, removedAt: 3 },
   {
     id: "depIndex",
     label: "dependencyIndex.ts",
     path: "src/graph/dependencyIndex.ts",
     category: "graph",
     weight: 1,
-    base: { x: 470, y: 396 },
+    base: { x: 530, y: 400 },
     renamedAt: 2,
     renamedFrom: "graphIndex.ts",
   },
-  { id: "temporalStore", label: "temporalStore.ts", path: "src/graph/temporalStore.ts", category: "graph", weight: 1, base: { x: 320, y: 408 }, addedAt: 2 },
+  { id: "temporalStore", label: "temporalStore.ts", path: "src/graph/temporalStore.ts", category: "graph", weight: 1, base: { x: 292, y: 418 }, addedAt: 2 },
   { id: "diffIndex", label: "diffIndex.ts", path: "src/graph/diffIndex.ts", category: "graph", weight: 0, base: { x: 396, y: 434 }, addedAt: 3 },
 
-  { id: "api", label: "api.ts", path: "src/api.ts", category: "api", weight: 2, base: { x: 606, y: 204 }, modifiedAt: [2] },
+  { id: "api", label: "api.ts", path: "src/api.ts", category: "api", weight: 2, base: { x: 632, y: 186 }, modifiedAt: [2] },
   { id: "client", label: "client.ts", path: "src/api/client.ts", category: "api", weight: 0, base: { x: 690, y: 152 } },
   { id: "schema", label: "schema.ts", path: "src/api/schema.ts", category: "api", weight: 0, base: { x: 674, y: 246 } },
 
@@ -311,6 +325,12 @@ export const COMMITS: Commit[] = [
   { id: "7fd410", label: "7fd410", message: "Temporal store + rename index", when: "5 days ago" },
   { id: "HEAD", label: "HEAD", message: "Diff index & dev server", when: "today" },
 ];
+
+/** Teal rail fill from the first commit marker to the selected one. */
+export function timelineProgressRatio(commit: number, total = COMMITS.length) {
+  if (total <= 1) return 0;
+  return commit / (total - 1);
+}
 
 export function statusAt(node: DemoNode, commit: number): TemporalStatus | "absent" {
   const added = node.addedAt ?? 0;

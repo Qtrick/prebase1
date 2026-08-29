@@ -8,6 +8,7 @@
  */
 
 import { CATEGORY_LABEL, NEIGHBORS, NODE_BY_ID, type DemoNode } from "@/lib/demo-graph";
+import type { DemoAgentAction } from "./demo-questions";
 
 export type AgentMode = "Ask" | "Edit" | "Agent";
 export const AGENT_MODES: AgentMode[] = ["Ask", "Edit", "Agent"];
@@ -64,26 +65,15 @@ function groupByCategory(ids: string[]) {
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-/** Short pre-response activity steps, mode aware. */
-export function activityFor(mode: AgentMode, id: string | null): string[] {
-  const n = NEIGHBORS[id ?? ""]?.length ?? 0;
-  if (mode === "Edit") {
-    return ["Reading selected node…", "Tracing direct dependents…", "Preparing change scope…"];
+export function fallbackActions(id: string | null): DemoAgentAction[] {
+  const node = id ? NODE_BY_ID[id] : undefined;
+  if (!node) {
+    return [{ id: "read-graph", label: "Reading graph context" }];
   }
-  if (mode === "Agent") {
-    return [
-      "Reading Code Graph…",
-      `Tracing ${n} relationships…`,
-      "Checking affected modules…",
-      "Preparing verification…",
-    ];
-  }
-  return ["Reading graph context…"];
-}
-
-export function placeholderFor(id: string | null) {
-  const label = id ? NODE_BY_ID[id]?.label : null;
-  return label ? `Ask about ${label}…` : "Ask about this codebase…";
+  return [
+    { id: "read-file", label: `Reading ${node.path}` },
+    { id: "inspect-deps", label: `Inspecting incoming/outgoing dependencies for "${node.path}"` },
+  ];
 }
 
 /* ------------------------------------------------------------------ */

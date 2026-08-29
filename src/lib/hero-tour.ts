@@ -3,7 +3,21 @@
  *
  * Visual state is discrete (phase changes). Cursor motion is continuous and
  * is written to the DOM via transform — it does not live in React state.
+ *
+ * The loop is closed: last frame after cursorHome/loopDwell equals the
+ * first frame of the next enter. Returning to that state is visible UI
+ * (New Agent +, then Network), not a hidden snap.
  */
+
+import {
+  actionSnapshotAt,
+  actionsDuration,
+  holdDuration,
+  streamedCharsAt,
+  streamDuration,
+  type AgentRunSnapshot,
+} from "./agent-run";
+import type { DemoAgentAction } from "./demo-questions";
 
 type GraphMode = "network" | "temporal";
 
@@ -11,9 +25,11 @@ export const HERO_TARGETS = {
   fileGraphService: "file-graph-service",
   networkNodeParser: "network-node-parser",
   temporalToggle: "temporal-toggle",
+  networkToggle: "network-toggle",
   temporalCommit: "temporal-commit",
   agentInput: "agent-input",
   agentSend: "agent-send",
+  agentNew: "agent-new",
 } as const;
 
 export type HeroTarget = (typeof HERO_TARGETS)[keyof typeof HERO_TARGETS];
@@ -30,6 +46,11 @@ export type TourVisualState = {
   typedChars: number;
   sent: boolean;
   showResponse: boolean;
+  streamedChars: number;
+  actionIndex: number;
+  actionCompleted: number;
+  actionsCollapsed: boolean;
+  agentResetting: boolean;
   cursorVisible: boolean;
   clicking: boolean;
 };
@@ -37,6 +58,7 @@ export type TourVisualState = {
 export const NETWORK_COMMIT = 3;
 export const TEMPORAL_FROM_COMMIT = 3;
 export const TEMPORAL_TO_COMMIT = 1;
+export const CURSOR_PARK = { x: -28, y: -40 };
 
 export const INITIAL_TOUR_STATE: TourVisualState = {
   selectedFile: null,
@@ -48,22 +70,56 @@ export const INITIAL_TOUR_STATE: TourVisualState = {
   typedChars: 0,
   sent: false,
   showResponse: false,
+  streamedChars: 0,
+  actionIndex: -1,
+  actionCompleted: 0,
+  actionsCollapsed: false,
+  agentResetting: false,
   cursorVisible: false,
   clicking: false,
 };
 
+/** Visible start of each loop: Network, empty agent, cursor parked. */
+export const LOOP_START_STATE: TourVisualState = {
+  ...INITIAL_TOUR_STATE,
+  cursorVisible: true,
+};
+
+export function isLoopStartState(state: TourVisualState) {
+  return (
+    state.mode === "network" &&
+    state.commit === NETWORK_COMMIT &&
+    state.selectedFile === null &&
+    state.selectedNode === null &&
+    state.sent === false &&
+    state.showResponse === false &&
+    state.typedChars === 0 &&
+    state.streamedChars === 0 &&
+    state.actionIndex < 0 &&
+    state.actionCompleted === 0 &&
+    state.actionsCollapsed === false &&
+    state.agentResetting === false &&
+    state.agentFocused === false
+  );
+}
+
 /** Representative reduced-motion state: same information, no roaming cursor. */
-export function reducedMotionState(promptLength: number): TourVisualState {
+export function reducedMotionState(promptLength: number, responseLength: number, actionCount: number): TourVisualState {
   return {
     selectedFile: "graph",
     selectedNode: "graph",
     mode: "network",
     commit: NETWORK_COMMIT,
     activity: "graph",
-    agentFocused: true,
+    agentFocused: false,
     typedChars: promptLength,
     sent: true,
     showResponse: true,
+    streamedChars: responseLength,
+    actionIndex: -1,
+    actionCompleted: actionCount,
+    actionsCollapsed: true,
+    agentResetting: false,
     cursorVisible: false,
     clicking: false,
   };
@@ -83,9 +139,23 @@ export type TourPhaseId =
   | "focusAgent"
   | "typeQuestion"
   | "send"
-  | "showResponse"
-  | "hold"
-  | "reset";
+  | "runActions"
+  | "streamResponse"
+  | "holdResponse"
+  | "moveToNewAgent"
+  | "clickNewAgent"
+  | "settleAgent"
+  | "moveToNetwork"
+  | "switchNetwork"
+  | "settleNetwork"
+  | "cursorHome"
+  | "loopDwell";
+
+export type TourTiming = {
+  promptLength: number;
+  responseLength: number;
+  actions: readonly DemoAgentAction[];
+};
 
 export type TourPhase = {
   id: TourPhaseId;
@@ -93,72 +163,85 @@ export type TourPhase = {
   moveMs: number;
   dwellMs: number;
   click?: boolean;
-  /** Character-by-character typing; dwellMs is replaced by length * msPerChar. */
   type?: boolean;
-  apply: (state: TourVisualState, promptLength: number) => TourVisualState;
+  actions?: boolean;
+  stream?: boolean;
+  hold?: boolean;
+  park?: boolean;
+  apply: (state: TourVisualState, timing: TourTiming) => TourVisualState;
 };
 
-function set(
-  patch: Partial<TourVisualState>,
-): (state: TourVisualState, promptLength: number) => TourVisualState {
+function set(patch: Partial<TourVisualState>): TourPhase["apply"] {
   return (state) => ({ ...state, ...patch });
 }
+
+const FRESH_AGENT: Partial<TourVisualState> = {
+  sent: false,
+  showResponse: false,
+  streamedChars: 0,
+  typedChars: 0,
+  agentFocused: false,
+  actionIndex: -1,
+  actionCompleted: 0,
+  actionsCollapsed: false,
+  agentResetting: false,
+};
 
 const FULL: TourPhase[] = [
   {
     id: "enter",
     target: null,
     moveMs: 0,
-    dwellMs: 480,
-    apply: set({ cursorVisible: true, clicking: false }),
+    dwellMs: 360,
+    park: true,
+    apply: set({ ...LOOP_START_STATE }),
   },
   {
     id: "moveToFile",
     target: HERO_TARGETS.fileGraphService,
-    moveMs: 560,
-    dwellMs: 80,
+    moveMs: 520,
+    dwellMs: 60,
     apply: set({ activity: "explorer", cursorVisible: true }),
   },
   {
     id: "selectFile",
     target: HERO_TARGETS.fileGraphService,
     moveMs: 0,
-    dwellMs: 560,
+    dwellMs: 480,
     click: true,
     apply: set({
       selectedFile: "graph",
       selectedNode: "graph",
       activity: "explorer",
-      clicking: false,
     }),
   },
   {
     id: "moveToNode",
     target: HERO_TARGETS.networkNodeParser,
-    moveMs: 680,
-    dwellMs: 80,
+    moveMs: 620,
+    dwellMs: 60,
     apply: set({ activity: "graph" }),
   },
   {
     id: "selectNode",
     target: HERO_TARGETS.networkNodeParser,
     moveMs: 0,
-    dwellMs: 920,
+    dwellMs: 720,
     click: true,
     apply: set({ selectedNode: "parser", activity: "graph" }),
   },
   {
     id: "moveToTemporal",
     target: HERO_TARGETS.temporalToggle,
-    moveMs: 520,
-    dwellMs: 60,
+    moveMs: 480,
+    dwellMs: 50,
     apply: set({ activity: "graph" }),
   },
   {
     id: "switchTemporal",
     target: HERO_TARGETS.temporalToggle,
     moveMs: 0,
-    dwellMs: 720,
+    dwellMs: 640,
     click: true,
     apply: set({
       mode: "temporal",
@@ -171,22 +254,22 @@ const FULL: TourPhase[] = [
   {
     id: "moveToCommit",
     target: HERO_TARGETS.temporalCommit,
-    moveMs: 480,
-    dwellMs: 60,
+    moveMs: 440,
+    dwellMs: 50,
     apply: set({ mode: "temporal" }),
   },
   {
     id: "selectCommit",
     target: HERO_TARGETS.temporalCommit,
     moveMs: 0,
-    dwellMs: 1040,
+    dwellMs: 820,
     click: true,
     apply: set({ commit: TEMPORAL_TO_COMMIT, mode: "temporal" }),
   },
   {
     id: "moveToAgent",
     target: HERO_TARGETS.agentInput,
-    moveMs: 640,
+    moveMs: 560,
     dwellMs: 40,
     apply: set({ activity: "agent" }),
   },
@@ -194,7 +277,7 @@ const FULL: TourPhase[] = [
     id: "focusAgent",
     target: HERO_TARGETS.agentInput,
     moveMs: 0,
-    dwellMs: 180,
+    dwellMs: 140,
     click: true,
     apply: set({ agentFocused: true, activity: "agent", typedChars: 0 }),
   },
@@ -204,66 +287,143 @@ const FULL: TourPhase[] = [
     moveMs: 0,
     dwellMs: 0,
     type: true,
-    apply: (state, promptLength) => ({
+    apply: (state, timing) => ({
       ...state,
       agentFocused: true,
-      typedChars: promptLength,
+      typedChars: timing.promptLength,
       activity: "agent",
     }),
   },
   {
     id: "send",
     target: HERO_TARGETS.agentSend,
-    moveMs: 280,
-    dwellMs: 160,
+    moveMs: 260,
+    dwellMs: 80,
     click: true,
-    apply: set({ sent: true, agentFocused: false, typedChars: 0 }),
+    apply: set({ sent: true, agentFocused: false, typedChars: 0, streamedChars: 0 }),
   },
   {
-    id: "showResponse",
+    id: "runActions",
     target: null,
     moveMs: 0,
-    dwellMs: 720,
-    apply: set({ showResponse: true, sent: true }),
+    dwellMs: 0,
+    actions: true,
+    apply: set({ sent: true, showResponse: false, streamedChars: 0 }),
   },
   {
-    id: "hold",
+    id: "streamResponse",
     target: null,
     moveMs: 0,
-    dwellMs: 2000,
-    apply: set({ showResponse: true, cursorVisible: true }),
-  },
-  {
-    id: "reset",
-    target: null,
-    moveMs: 0,
-    dwellMs: 640,
-    apply: (state) => ({
-      ...INITIAL_TOUR_STATE,
-      cursorVisible: false,
-      clicking: false,
-      selectedFile: state.selectedFile,
-      selectedNode: state.selectedNode,
-      mode: state.mode,
-      commit: state.commit,
-      showResponse: state.showResponse,
-      sent: state.sent,
-      typedChars: state.typedChars,
-      activity: state.activity,
+    dwellMs: 0,
+    stream: true,
+    apply: (state, timing) => ({
+      ...state,
+      sent: true,
+      showResponse: true,
+      actionsCollapsed: true,
+      actionCompleted: timing.actions.length,
+      actionIndex: -1,
+      streamedChars: 0,
     }),
+  },
+  {
+    id: "holdResponse",
+    target: null,
+    moveMs: 0,
+    dwellMs: 0,
+    hold: true,
+    apply: (state, timing) => ({
+      ...state,
+      showResponse: true,
+      streamedChars: timing.responseLength,
+      actionsCollapsed: true,
+      cursorVisible: true,
+    }),
+  },
+  {
+    id: "moveToNewAgent",
+    target: HERO_TARGETS.agentNew,
+    moveMs: 480,
+    dwellMs: 40,
+    apply: set({ activity: "agent", cursorVisible: true }),
+  },
+  {
+    id: "clickNewAgent",
+    target: HERO_TARGETS.agentNew,
+    moveMs: 0,
+    dwellMs: 80,
+    click: true,
+    apply: (state) => ({
+      ...state,
+      activity: "agent",
+      agentFocused: false,
+      agentResetting: true,
+    }),
+  },
+  {
+    id: "settleAgent",
+    target: HERO_TARGETS.agentNew,
+    moveMs: 0,
+    dwellMs: 180,
+    apply: (state) => ({ ...state, ...FRESH_AGENT, activity: "agent" }),
+  },
+  {
+    id: "moveToNetwork",
+    target: HERO_TARGETS.networkToggle,
+    moveMs: 500,
+    dwellMs: 40,
+    apply: set({ activity: "graph" }),
+  },
+  {
+    id: "switchNetwork",
+    target: HERO_TARGETS.networkToggle,
+    moveMs: 0,
+    dwellMs: 420,
+    click: true,
+    apply: set({
+      mode: "network",
+      commit: NETWORK_COMMIT,
+      selectedFile: null,
+      selectedNode: null,
+      activity: "explorer",
+    }),
+  },
+  {
+    id: "settleNetwork",
+    target: HERO_TARGETS.networkToggle,
+    moveMs: 0,
+    dwellMs: 220,
+    apply: set({
+      mode: "network",
+      commit: NETWORK_COMMIT,
+      selectedFile: null,
+      selectedNode: null,
+      ...FRESH_AGENT,
+      activity: "explorer",
+    }),
+  },
+  {
+    id: "cursorHome",
+    target: null,
+    moveMs: 480,
+    dwellMs: 80,
+    park: true,
+    apply: set({ ...LOOP_START_STATE }),
+  },
+  {
+    id: "loopDwell",
+    target: null,
+    moveMs: 0,
+    dwellMs: 280,
+    park: true,
+    apply: set({ ...LOOP_START_STATE }),
   },
 ];
 
-/** Narrow screens: file → graph → temporal → agent, fewer pointer hops. */
-const COMPACT: TourPhase[] = FULL.filter(
-  (p) => p.id !== "moveToNode" && p.id !== "selectNode",
-).map((p) => {
-  if (p.id === "selectFile") {
-    return { ...p, dwellMs: 640 };
-  }
-  if (p.id === "moveToTemporal") {
-    return { ...p, moveMs: 420 };
-  }
+/** Narrow screens: file → graph → temporal → agent, then the same closed return. */
+const COMPACT: TourPhase[] = FULL.filter((p) => p.id !== "moveToNode" && p.id !== "selectNode").map((p) => {
+  if (p.id === "selectFile") return { ...p, dwellMs: 560 };
+  if (p.id === "moveToTemporal") return { ...p, moveMs: 400 };
   return p;
 });
 
@@ -278,22 +438,26 @@ export function typeDuration(promptLength: number) {
   return Math.max(280, promptLength * TYPE_MS_PER_CHAR);
 }
 
-export function phaseDuration(phase: TourPhase, promptLength: number) {
-  const dwell = phase.type ? typeDuration(promptLength) : phase.dwellMs;
-  return phase.moveMs + (phase.click ? CLICK_MS : 0) + dwell;
+export function phaseDuration(phase: TourPhase, timing: TourTiming | number) {
+  const ctx: TourTiming =
+    typeof timing === "number" ? { promptLength: timing, responseLength: 0, actions: [] } : timing;
+  if (phase.type) return typeDuration(ctx.promptLength);
+  if (phase.actions) return actionsDuration(ctx.actions);
+  if (phase.stream) return streamDuration(ctx.responseLength);
+  if (phase.hold) return holdDuration(ctx.responseLength);
+  return phase.moveMs + (phase.click ? CLICK_MS : 0) + phase.dwellMs;
 }
 
 export function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-/** Ease-in-out for cursor travel (compositor-friendly transform interpolation). */
 export function easeCursor(t: number) {
   return easeInOutCubic(Math.min(1, Math.max(0, t)));
 }
 
-export function loopDuration(compact: boolean, promptLength: number) {
-  return phasesFor(compact).reduce((sum, phase) => sum + phaseDuration(phase, promptLength), 0);
+export function loopDuration(compact: boolean, timing: TourTiming) {
+  return phasesFor(compact).reduce((sum, phase) => sum + phaseDuration(phase, timing), 0);
 }
 
 export type PauseReasons = {
@@ -320,13 +484,29 @@ export function measureTarget(root: HTMLElement, target: string): Point | null {
   };
 }
 
+export function parkPoint(file: Point): Point {
+  return { x: file.x + CURSOR_PARK.x, y: file.y + CURSOR_PARK.y };
+}
+
+export function applyActionSnapshot(state: TourVisualState, snap: AgentRunSnapshot): TourVisualState {
+  return {
+    ...state,
+    actionIndex: snap.activeIndex,
+    actionCompleted: snap.completedCount,
+    actionsCollapsed: snap.collapsed,
+    showResponse: false,
+    streamedChars: 0,
+  };
+}
+
 export type TourClockHandlers = {
   onVisual: (state: TourVisualState) => void;
   onCursor: (x: number, y: number, clicking: boolean, opacity: number) => void;
   measure: (target: HeroTarget | null) => Point;
   promptLength: () => number;
+  responseLength: () => number;
+  actions: () => readonly DemoAgentAction[];
   compact: () => boolean;
-  now?: () => number;
 };
 
 /**
@@ -342,12 +522,16 @@ export class HeroTourClock {
   private to: Point = { x: 24, y: 36 };
   private visual: TourVisualState = { ...INITIAL_TOUR_STATE };
   private typed = 0;
-  private clickUntil = 0;
+  private streamed = 0;
   private pausedAt: number | null = null;
   private appliedPhase = "";
 
   constructor(private handlers: TourClockHandlers) {
     this.phases = phasesFor(handlers.compact());
+  }
+
+  get snapshot(): TourVisualState {
+    return this.visual;
   }
 
   start(now: number) {
@@ -358,8 +542,9 @@ export class HeroTourClock {
     this.pausedAt = null;
     this.visual = { ...INITIAL_TOUR_STATE };
     this.typed = 0;
+    this.streamed = 0;
     this.appliedPhase = "";
-    this.from = this.handlers.measure(null);
+    this.from = this.park();
     this.to = this.from;
     this.enterPhase(now);
   }
@@ -382,8 +567,8 @@ export class HeroTourClock {
 
   remeasure() {
     const phase = this.phases[this.index];
-    if (!phase?.target) return;
-    const next = this.handlers.measure(phase.target);
+    if (!phase) return;
+    const next = this.targetPoint(phase);
     this.from = next;
     this.to = next;
   }
@@ -393,22 +578,42 @@ export class HeroTourClock {
     const phase = this.phases[this.index];
     if (!phase) return;
 
-    const promptLen = this.handlers.promptLength();
-    const duration = phaseDuration(phase, promptLen);
+    const timing = this.timing();
+    const duration = phaseDuration(phase, timing);
     const t = now - this.phaseStart;
 
-    if (phase.click && t >= phase.moveMs && t < phase.moveMs + CLICK_MS) {
-      if (now > this.clickUntil) {
-        this.clickUntil = now + CLICK_MS;
-      }
-    }
-
     if (phase.type) {
-      const typeT = Math.max(0, t - phase.moveMs);
-      const next = Math.min(promptLen, Math.floor(typeT / TYPE_MS_PER_CHAR));
+      const next = Math.min(timing.promptLength, Math.floor(t / TYPE_MS_PER_CHAR));
       if (next !== this.typed) {
         this.typed = next;
         this.visual = { ...this.visual, typedChars: next, agentFocused: true };
+        this.handlers.onVisual(this.visual);
+      }
+    }
+
+    if (phase.actions) {
+      const snap = actionSnapshotAt(t, timing.actions);
+      const next = applyActionSnapshot(this.visual, snap);
+      if (
+        next.actionIndex !== this.visual.actionIndex ||
+        next.actionCompleted !== this.visual.actionCompleted ||
+        next.actionsCollapsed !== this.visual.actionsCollapsed
+      ) {
+        this.visual = next;
+        this.handlers.onVisual(this.visual);
+      }
+    }
+
+    if (phase.stream) {
+      const next = streamedCharsAt(t, timing.responseLength);
+      if (next !== this.streamed) {
+        this.streamed = next;
+        this.visual = {
+          ...this.visual,
+          streamedChars: next,
+          showResponse: true,
+          actionsCollapsed: true,
+        };
         this.handlers.onVisual(this.visual);
       }
     }
@@ -418,37 +623,47 @@ export class HeroTourClock {
     const x = this.from.x + (this.to.x - this.from.x) * p;
     const y = this.from.y + (this.to.y - this.from.y) * p;
     const clicking = Boolean(phase.click) && t >= phase.moveMs && t < phase.moveMs + CLICK_MS;
-    const opacity = phase.id === "reset" ? Math.max(0, 1 - t / 280) : this.visual.cursorVisible ? 1 : 0;
-    this.handlers.onCursor(x, y, clicking, opacity);
+    this.handlers.onCursor(x, y, clicking, this.visual.cursorVisible ? 1 : 0);
 
     if (t >= duration) {
       this.advance(now);
     }
   }
 
+  private timing(): TourTiming {
+    return {
+      promptLength: this.handlers.promptLength(),
+      responseLength: this.handlers.responseLength(),
+      actions: this.handlers.actions(),
+    };
+  }
+
+  private park() {
+    return parkPoint(this.handlers.measure(HERO_TARGETS.fileGraphService));
+  }
+
+  private targetPoint(phase: TourPhase): Point {
+    if (phase.park) return this.park();
+    if (phase.target) return this.handlers.measure(phase.target);
+    return this.to;
+  }
+
   private enterPhase(now: number) {
     const phase = this.phases[this.index]!;
-    const promptLen = this.handlers.promptLength();
+    const timing = this.timing();
     this.from = { ...this.to };
-    if (phase.target) {
-      this.to = this.handlers.measure(phase.target);
-    }
-    if (phase.id === "enter") {
-      this.to = this.handlers.measure(HERO_TARGETS.fileGraphService);
-      this.from = { x: this.to.x - 28, y: this.to.y - 40 };
-      this.to = this.from;
-    }
-    if (phase.id === "reset") {
-      this.to = this.from;
-    }
+    this.to = this.targetPoint(phase);
 
     if (this.appliedPhase !== phase.id) {
-      this.visual = phase.apply(this.visual, promptLen);
+      this.visual = phase.apply(this.visual, timing);
       if (phase.id === "typeQuestion") {
         this.visual = { ...this.visual, typedChars: this.typed };
       }
-      if (phase.id === "reset") {
-        this.visual = { ...this.visual, cursorVisible: false };
+      if (phase.id === "streamResponse") {
+        this.visual = { ...this.visual, streamedChars: this.streamed };
+      }
+      if (phase.id === "runActions") {
+        this.visual = applyActionSnapshot(this.visual, actionSnapshotAt(0, timing.actions));
       }
       this.appliedPhase = phase.id;
       this.handlers.onVisual(this.visual);
@@ -458,17 +673,14 @@ export class HeroTourClock {
   }
 
   private advance(now: number) {
-    const phase = this.phases[this.index]!;
-    if (phase.id === "reset") {
-      this.visual = { ...INITIAL_TOUR_STATE };
-      this.typed = 0;
-      this.appliedPhase = "";
-      this.handlers.onVisual(this.visual);
-      this.index = 0;
-      this.enterPhase(now);
-      return;
-    }
     this.index = (this.index + 1) % this.phases.length;
+    if (this.index === 0) {
+      this.typed = 0;
+      this.streamed = 0;
+      this.appliedPhase = "";
+      this.visual = { ...LOOP_START_STATE };
+      this.handlers.onVisual(this.visual);
+    }
     this.enterPhase(now);
   }
 }

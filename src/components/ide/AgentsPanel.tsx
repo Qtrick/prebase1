@@ -1,16 +1,17 @@
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { Plus } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { AgentActionLog } from "@/components/ide/AgentActionLog";
 import { NEIGHBORS, NODE_BY_ID } from "@/lib/demo-graph";
 import {
   AGENT_MODES,
-  STREAM_CHARS_PER_TICK,
-  STREAM_INTERVAL_MS,
-  activityFor,
+  fallbackActions,
   replyFor,
   type AgentMode,
   type ChatMessage,
 } from "@/lib/agent-demo";
-import { responseForPrompt, useDemoQuestion, type DemoSurface } from "@/lib/demo-questions";
+import { IDLE_RUN, scheduleActions, scheduleStream, type AgentRunSnapshot } from "@/lib/agent-run";
+import { questionForPrompt, useDemoQuestion, type DemoAgentAction, type DemoSurface } from "@/lib/demo-questions";
 
 let uid = 0;
 const nextId = () => `m${++uid}`;
@@ -35,7 +36,9 @@ export function AgentsPanel({
   const reduce = useReducedMotion();
   const [mode, setMode] = useState<AgentMode>("Ask");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [activity, setActivity] = useState<string | null>(null);
+  const [run, setRun] = useState<AgentRunSnapshot>(IDLE_RUN);
+  const [runActions, setRunActions] = useState<readonly DemoAgentAction[]>([]);
+  const [logExpanded, setLogExpanded] = useState(false);
   const [streaming, setStreaming] = useState(false);
 
   // Fall back to the selected node's direct edges so the header never claims
@@ -52,7 +55,6 @@ export function AgentsPanel({
     runId.current += 1;
     timers.current.forEach(clearTimeout);
     timers.current = [];
-    setActivity(null);
     setStreaming(false);
   };
   const later = (fn: () => void, ms: number) => {
@@ -70,56 +72,80 @@ export function AgentsPanel({
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (el && pinned.current) el.scrollTop = el.scrollHeight;
-  }, [messages, activity]);
+  }, [messages, run, streaming]);
+
+  function newAgent() {
+    cancel();
+    setMessages([]);
+    setRun(IDLE_RUN);
+    setRunActions([]);
+    setLogExpanded(false);
+  }
 
   function send(text: string) {
     const value = text.trim();
     if (!value || streaming) return;
     cancel();
-    const run = runId.current;
+    const runToken = runId.current;
     pinned.current = true;
+    setLogExpanded(false);
 
     setMessages((m) => [...m, { id: nextId(), role: "user", text: value }]);
 
-    const steps = activityFor(mode, selected);
-    const answer = responseForPrompt(value) ?? replyFor(mode, selected, value);
+    const matched = questionForPrompt(value);
+    const actions = matched?.actions ?? fallbackActions(selected);
+    const answer = matched?.response ?? replyFor(mode, selected, value);
+    setRunActions(actions);
+    setRun({
+      phase: "acting",
+      activeIndex: actions.length ? 0 : -1,
+      completedCount: 0,
+      collapsed: false,
+      streamedChars: 0,
+    });
+
+    const laterIfLive = (fn: () => void, ms: number) => {
+      later(() => {
+        if (runToken !== runId.current) return;
+        fn();
+      }, ms);
+    };
 
     if (reduce) {
-      setActivity(steps[0] ?? null);
-      later(() => {
-        if (run !== runId.current) return;
-        setActivity(null);
+      laterIfLive(() => {
+        setRun({
+          phase: "collapsed",
+          activeIndex: -1,
+          completedCount: actions.length,
+          collapsed: true,
+          streamedChars: answer.length,
+        });
         setMessages((m) => [...m, { id: nextId(), role: "agent", text: answer }]);
-      }, 220);
+      }, 180);
       return;
     }
 
-    steps.forEach((s, i) => {
-      later(() => {
-        if (run !== runId.current) return;
-        setActivity(s);
-      }, i * 260);
-    });
-
-    later(
+    scheduleActions(
+      actions,
+      laterIfLive,
+      (snap) => setRun(snap),
       () => {
-        if (run !== runId.current) return;
-        setActivity(null);
+        if (runToken !== runId.current) return;
         setStreaming(true);
         const id = nextId();
         setMessages((m) => [...m, { id, role: "agent", text: "" }]);
-        let i = 0;
-        const tick = () => {
-          if (run !== runId.current) return;
-          i = Math.min(answer.length, i + STREAM_CHARS_PER_TICK);
-          const slice = answer.slice(0, i);
-          setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: slice } : msg)));
-          if (i < answer.length) later(tick, STREAM_INTERVAL_MS);
-          else setStreaming(false);
-        };
-        tick();
+        scheduleStream(answer, {
+          later: laterIfLive,
+          onSlice: (slice) => {
+            setRun((s) => ({ ...s, phase: "streaming", streamedChars: slice.length }));
+            setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: slice } : msg)));
+          },
+          onDone: () => {
+            setStreaming(false);
+            setRun((s) => ({ ...s, phase: "complete", streamedChars: answer.length }));
+          },
+        });
       },
-      steps.length * 260 + 120,
     );
   }
 
@@ -128,7 +154,19 @@ export function AgentsPanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col text-[12.5px]">
-      <p className="shrink-0 pb-3 text-[10px] tracking-[0.16em] text-muted-foreground">AGENTS</p>
+      <div className="flex shrink-0 items-center justify-between gap-2 pb-3">
+        <p className="text-[10px] tracking-[0.16em] text-muted-foreground">AGENTS</p>
+        {chat && (
+          <button
+            type="button"
+            aria-label="New Agent"
+            onClick={newAgent}
+            className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Plus className="size-3.5" strokeWidth={2} aria-hidden="true" />
+          </button>
+        )}
+      </div>
       <div className="flex shrink-0 gap-1.5 text-[11px]" role="group" aria-label="Agent mode">
         {AGENT_MODES.map((m) => (
           <button
@@ -211,19 +249,15 @@ export function AgentsPanel({
                   </div>
                 ),
               )}
-              <AnimatePresence>
-                {activity && (
-                  <motion.p
-                    key={activity}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="font-mono text-[10.5px] text-muted-foreground"
-                  >
-                    {activity}
-                  </motion.p>
-                )}
-              </AnimatePresence>
+              {run.phase !== "idle" && (
+                <AgentActionLog
+                  actions={runActions}
+                  snapshot={run}
+                  expandable
+                  expanded={logExpanded}
+                  onToggle={() => setLogExpanded((v) => !v)}
+                />
+              )}
             </div>
 
             <div className="flex shrink-0 flex-col gap-1.5">
@@ -233,7 +267,7 @@ export function AgentsPanel({
               {question ? (
                 <button
                   type="button"
-                  disabled={streaming}
+                  disabled={streaming || run.phase === "acting"}
                   onClick={() => send(question)}
                   className="cursor-pointer rounded-md border border-border bg-surface-2/70 px-2.5 py-2 text-left text-[12.5px] leading-[1.45] text-foreground/90 transition-all duration-200 hover:translate-x-0.5 hover:border-border-strong hover:bg-surface-2 hover:text-foreground disabled:opacity-40"
                 >

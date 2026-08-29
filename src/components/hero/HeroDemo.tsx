@@ -1,9 +1,12 @@
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Plus } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { AgentActionLog } from "@/components/ide/AgentActionLog";
 import { DemoGraph } from "@/components/graph/DemoGraph";
-import { COMMITS, EXPLORER, contextFor } from "@/lib/demo-graph";
-import { useDemoQuestion } from "@/lib/demo-questions";
+import { TemporalTimeline } from "@/components/ide/TemporalControls";
+import { EXPLORER, contextFor } from "@/lib/demo-graph";
+import { useDemoQuestion, type DemoAgentAction } from "@/lib/demo-questions";
+import { IDLE_RUN, type AgentRunSnapshot } from "@/lib/agent-run";
 import {
   HERO_TARGETS,
   HeroTourClock,
@@ -26,6 +29,7 @@ export function HeroDemo() {
   const rootRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const typedRef = useRef<HTMLSpanElement>(null);
+  const streamRef = useRef<HTMLSpanElement>(null);
   const visualRef = useRef<TourVisualState>(INITIAL_TOUR_STATE);
   const clockRef = useRef<HeroTourClock | null>(null);
   const reasonsRef = useRef<PauseReasons>({
@@ -87,10 +91,11 @@ export function HeroDemo() {
   useEffect(() => {
     if (reduce) {
       const promptLen = question?.prompt.length ?? 0;
-      const next = reducedMotionState(promptLen);
+      const next = reducedMotionState(promptLen, question?.response.length ?? 0, question?.actions.length ?? 0);
       visualRef.current = next;
       setVisual(next);
       if (typedRef.current && question) typedRef.current.textContent = question.prompt;
+      if (streamRef.current && question) streamRef.current.textContent = question.response;
       return;
     }
     if (!question) return;
@@ -108,6 +113,8 @@ export function HeroDemo() {
     const clock = new HeroTourClock({
       compact: () => compact,
       promptLength: () => question.prompt.length,
+      responseLength: () => question.response.length,
+      actions: () => question.actions,
       measure: (target) => {
         if (!target) return { x: 28, y: 36 };
         return measureTarget(root, target) ?? { x: 28, y: 36 };
@@ -122,12 +129,32 @@ export function HeroDemo() {
           next.mode === prev.mode &&
           next.commit === prev.commit &&
           next.sent === prev.sent &&
-          next.showResponse === prev.showResponse;
+          next.showResponse === prev.showResponse &&
+          next.actionIndex === prev.actionIndex &&
+          next.actionCompleted === prev.actionCompleted &&
+          next.actionsCollapsed === prev.actionsCollapsed &&
+          next.agentResetting === prev.agentResetting &&
+          next.streamedChars === prev.streamedChars;
+        const streamingOnly =
+          next.streamedChars !== prev.streamedChars &&
+          next.typedChars === prev.typedChars &&
+          next.selectedFile === prev.selectedFile &&
+          next.selectedNode === prev.selectedNode &&
+          next.mode === prev.mode &&
+          next.commit === prev.commit &&
+          next.sent === prev.sent &&
+          next.showResponse === prev.showResponse &&
+          next.actionIndex === prev.actionIndex &&
+          next.actionsCollapsed === prev.actionsCollapsed &&
+          next.agentResetting === prev.agentResetting;
         visualRef.current = next;
         if (typedRef.current) {
           typedRef.current.textContent = question.prompt.slice(0, next.typedChars);
         }
-        if (!typingOnly) setVisual(next);
+        if (streamRef.current) {
+          streamRef.current.textContent = question.response.slice(0, next.streamedChars);
+        }
+        if (!typingOnly && !streamingOnly) setVisual(next);
       },
     });
     clockRef.current = clock;
@@ -230,15 +257,24 @@ export function HeroDemo() {
                       labelAll={false}
                     />
                   </div>
-                  <TemporalStrip visible={visual.mode === "temporal"} commit={visual.commit} />
+                  <TemporalTimeline
+                    commit={visual.commit}
+                    visible={visual.mode === "temporal"}
+                    compact
+                    markerTarget={(i) =>
+                      i === TEMPORAL_TO_COMMIT ? HERO_TARGETS.temporalCommit : undefined
+                    }
+                  />
                 </div>
               </div>
-              <AgentPane
-                visual={visual}
-                prompt={prompt}
-                response={response}
-                typedRef={typedRef}
-              />
+            <AgentPane
+              visual={visual}
+              prompt={prompt}
+              response={response}
+              actions={question?.actions ?? []}
+              typedRef={typedRef}
+              streamRef={streamRef}
+            />
             </div>
           </div>
         </div>
@@ -269,7 +305,7 @@ function ModePills({ mode }: { mode: TourVisualState["mode"] }) {
         return (
           <span
             key={m}
-            data-demo-target={m === "temporal" ? HERO_TARGETS.temporalToggle : undefined}
+            data-demo-target={m === "temporal" ? HERO_TARGETS.temporalToggle : HERO_TARGETS.networkToggle}
             className={
               "relative rounded-[5px] px-2 py-0.5 " + (active ? "text-teal" : "text-muted-foreground/60")
             }
@@ -358,52 +394,51 @@ function Explorer({ selected }: { selected: string | null }) {
   );
 }
 
-function TemporalStrip({ visible, commit }: { visible: boolean; commit: number }) {
-  return (
-    <div
-      className="shrink-0 overflow-hidden border-t border-border bg-surface-1/90 transition-opacity duration-300"
-      style={{ opacity: visible ? 1 : 0, height: visible ? undefined : 0 }}
-    >
-      <div className="flex items-center justify-between gap-2 px-3 py-1.5">
-        {COMMITS.map((c, i) => {
-          const on = i === commit;
-          return (
-            <span
-              key={c.id}
-              data-demo-target={i === TEMPORAL_TO_COMMIT ? HERO_TARGETS.temporalCommit : undefined}
-              className="flex flex-col items-center gap-1"
-            >
-              <span
-                className={
-                  "size-2 rounded-full border " +
-                  (on ? "border-teal bg-teal" : "border-border-strong bg-surface-2")
-                }
-              />
-              <span className={"font-mono text-[9px] " + (on ? "text-teal" : "text-muted-foreground")}>
-                {c.label}
-              </span>
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function AgentPane({
   visual,
   prompt,
   response,
+  actions,
   typedRef,
+  streamRef,
 }: {
   visual: TourVisualState;
   prompt: string;
   response: string;
+  actions: readonly DemoAgentAction[];
   typedRef: RefObject<HTMLSpanElement | null>;
+  streamRef: RefObject<HTMLSpanElement | null>;
 }) {
+  const run: AgentRunSnapshot =
+    visual.sent || visual.actionCompleted > 0 || visual.actionsCollapsed
+      ? {
+          phase: visual.showResponse || visual.actionsCollapsed ? "collapsed" : "acting",
+          activeIndex: visual.actionIndex,
+          completedCount: visual.actionCompleted,
+          collapsed: visual.actionsCollapsed,
+          streamedChars: visual.streamedChars,
+        }
+      : IDLE_RUN;
+
   return (
-    <aside className="flex h-[124px] shrink-0 flex-col overflow-hidden border-t border-border bg-surface-1/95 p-2.5 lg:h-auto lg:w-[176px] lg:border-l lg:border-t-0 xl:w-[196px]">
-      <p className="pb-2 text-[9px] tracking-[0.16em] text-muted-foreground">AGENTS</p>
+    <aside className="flex h-[148px] shrink-0 flex-col overflow-hidden border-t border-border bg-surface-1/95 p-2.5 lg:h-auto lg:w-[188px] lg:border-l lg:border-t-0 xl:w-[210px]">
+      <div className="flex items-center justify-between gap-2 pb-2">
+        <p className="text-[9px] tracking-[0.16em] text-muted-foreground">AGENTS</p>
+        <span
+          data-demo-target={HERO_TARGETS.agentNew}
+          aria-hidden="true"
+          className={
+            "inline-flex size-6 items-center justify-center rounded-md border text-muted-foreground transition-[border-color,color,transform] duration-150 " +
+            (visual.agentResetting
+              ? "scale-[0.92] border-teal/40 text-teal"
+              : visual.activity === "agent" && !visual.sent && visual.actionCompleted === 0
+                ? "border-teal/40 text-teal"
+                : "border-border")
+          }
+        >
+          <Plus className="size-3.5" strokeWidth={2} aria-hidden="true" />
+        </span>
+      </div>
       <div className="flex items-center gap-1.5 font-mono text-[10px] text-teal">
         <span className="inline-block size-1.5 rounded-full bg-teal" />
         {visual.selectedFile ? "Context ready" : "No context"}
@@ -411,22 +446,31 @@ function AgentPane({
       {visual.selectedFile && (
         <p className="mt-1 font-mono text-[10px] text-muted-foreground">graphService.ts · +7 files</p>
       )}
-      <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-hidden">
+      <div
+        className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-hidden transition-opacity duration-150"
+        style={{ opacity: visual.agentResetting ? 0 : 1 }}
+      >
         {visual.sent && (
           <div className="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] leading-[1.45] text-foreground/90">
             {prompt}
           </div>
         )}
+        {(run.phase === "acting" || visual.actionsCollapsed) && (
+          <AgentActionLog actions={actions} snapshot={run} presentational />
+        )}
         {visual.showResponse && (
           <div className="rounded-md border border-teal/25 bg-teal/[0.07] px-2 py-1.5 text-[11px] leading-[1.45] text-teal">
-            {response}
+            <span ref={streamRef}>{response.slice(0, visual.streamedChars)}</span>
+            {visual.streamedChars > 0 && visual.streamedChars < response.length && (
+              <span className="pb-caret ml-px inline-block h-[1em] w-[1.5px] translate-y-[2px] bg-teal" />
+            )}
           </div>
         )}
       </div>
       <div
         data-demo-target={HERO_TARGETS.agentInput}
         className={
-          "mt-2 min-h-[44px] rounded-md border px-2 py-1.5 text-[11px] leading-[1.45] " +
+          "mt-2 min-h-[36px] rounded-md border px-2 py-1.5 text-[11px] leading-[1.45] " +
           (visual.agentFocused
             ? "border-teal/40 bg-surface-2"
             : "border-border bg-surface-2/70 text-muted-foreground")
@@ -435,7 +479,9 @@ function AgentPane({
         <span ref={typedRef} className="text-foreground">
           {visual.typedChars ? prompt.slice(0, visual.typedChars) : ""}
         </span>
-        {visual.agentFocused && <span className="pb-caret ml-px inline-block h-[1em] w-[1.5px] translate-y-[2px] bg-foreground" />}
+        {visual.agentFocused && (
+          <span className="pb-caret ml-px inline-block h-[1em] w-[1.5px] translate-y-[2px] bg-foreground" />
+        )}
         {!visual.typedChars && !visual.agentFocused && (
           <span className="text-muted-foreground/70">Ask about this codebase…</span>
         )}

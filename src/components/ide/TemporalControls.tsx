@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { COMMITS, diffCounts } from "@/lib/demo-graph";
+import { COMMITS, diffCounts, timelineProgressRatio } from "@/lib/demo-graph";
 
 export function TemporalToolbar({
   commit,
@@ -113,12 +113,16 @@ export function TemporalTimeline({
   playing = false,
   onTogglePlay,
   visible = true,
+  compact = false,
+  markerTarget,
 }: {
   commit: number;
   onCommit?: ((i: number) => void) | undefined;
   playing?: boolean;
   onTogglePlay?: (() => void) | undefined;
   visible?: boolean;
+  compact?: boolean;
+  markerTarget?: (index: number) => string | undefined;
 }) {
   const interactive = Boolean(onCommit);
   const scrubId = useId();
@@ -152,7 +156,7 @@ export function TemporalTimeline({
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="shrink-0 overflow-hidden border-t border-border bg-surface-1/90"
     >
-      <div className="flex items-center gap-3 px-3 py-2">
+      <div className={"flex items-center gap-3 " + (compact ? "px-2 py-1.5" : "px-3 py-2")}>
         {onTogglePlay && (
           <button
             type="button"
@@ -172,26 +176,19 @@ export function TemporalTimeline({
           <motion.div
             className="absolute top-[5px] h-px bg-teal"
             style={{ left: edges.left }}
-            animate={{ width: (commit / (COMMITS.length - 1)) * edges.span }}
+            animate={{ width: timelineProgressRatio(commit) * edges.span }}
             transition={{ duration: 0.4 }}
             aria-hidden="true"
           />
           <div className="relative flex w-full items-start justify-between">
             {COMMITS.map((c, i) => {
               const on = i === commit;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  tabIndex={interactive ? 0 : -1}
-                  aria-pressed={on}
-                  aria-label={`Commit ${c.label}: ${c.message}`}
-                  onClick={() => onCommit?.(i)}
-                  className={
-                    "group flex min-h-11 flex-col items-center gap-1 px-1 " +
-                    (interactive ? "cursor-pointer" : "cursor-default")
-                  }
-                >
+              const markerClass =
+                "group flex flex-col items-center gap-1 px-1 " +
+                (compact ? "" : "min-h-11 ") +
+                (interactive ? "cursor-pointer" : "cursor-default");
+              const inner = (
+                <>
                   <span
                     data-dot
                     className={
@@ -203,13 +200,31 @@ export function TemporalTimeline({
                   />
                   <span
                     className={
-                      "font-mono text-[10px] transition-colors " +
+                      "font-mono transition-colors " +
+                      (compact ? "text-[9px] " : "text-[10px] ") +
                       (on ? "text-teal" : "text-muted-foreground")
                     }
                   >
                     {c.label}
                   </span>
+                </>
+              );
+              return interactive ? (
+                <button
+                  key={c.id}
+                  type="button"
+                  aria-pressed={on}
+                  aria-label={`Commit ${c.label}: ${c.message}`}
+                  data-demo-target={markerTarget?.(i)}
+                  onClick={() => onCommit?.(i)}
+                  className={markerClass}
+                >
+                  {inner}
                 </button>
+              ) : (
+                <span key={c.id} data-demo-target={markerTarget?.(i)} className={markerClass}>
+                  {inner}
+                </span>
               );
             })}
           </div>

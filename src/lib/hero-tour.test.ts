@@ -6,13 +6,16 @@ import {
   INITIAL_TOUR_STATE,
   TYPE_MS_PER_CHAR,
   easeCursor,
+  isLoopStartState,
   loopDuration,
   phaseDuration,
   phasesFor,
   reducedMotionState,
   shouldPlay,
+  type TourTiming,
   type TourVisualState,
 } from "./hero-tour";
+import { DEMO_QUESTIONS } from "./demo-questions";
 
 function reasons(patch: Partial<Parameters<typeof shouldPlay>[0]> = {}) {
   return {
@@ -22,6 +25,32 @@ function reasons(patch: Partial<Parameters<typeof shouldPlay>[0]> = {}) {
     reducedMotion: false,
     ...patch,
   };
+}
+
+const sample: TourTiming = {
+  promptLength: DEMO_QUESTIONS[0]!.prompt.length,
+  responseLength: DEMO_QUESTIONS[0]!.response.length,
+  actions: DEMO_QUESTIONS[0]!.actions,
+};
+
+function makeClock(opts?: { compact?: boolean; prompt?: number; response?: number }) {
+  const visuals: TourVisualState[] = [];
+  const instance = new HeroTourClock({
+    onVisual: (s) => visuals.push({ ...s }),
+    onCursor: () => {},
+    measure: (target) => {
+      if (target === HERO_TARGETS.fileGraphService) return { x: 40, y: 80 };
+      if (target === HERO_TARGETS.networkNodeParser) return { x: 180, y: 140 };
+      if (target === HERO_TARGETS.agentNew) return { x: 400, y: 40 };
+      if (target === HERO_TARGETS.networkToggle) return { x: 360, y: 24 };
+      return { x: 20, y: 30 };
+    },
+    promptLength: () => opts?.prompt ?? 12,
+    responseLength: () => opts?.response ?? 9,
+    actions: () => [{ id: "a", label: "Reading src/graph/graphService.ts", durationMs: 40 }],
+    compact: () => opts?.compact ?? false,
+  });
+  return { clock: instance, visuals };
 }
 
 describe("hero tour playback gates", () => {
@@ -39,25 +68,28 @@ describe("hero tour playback gates", () => {
 });
 
 describe("hero tour phases", () => {
-  it("advances through the full loop and resets", () => {
-    const full = phasesFor(false);
-    const ids = full.map((p) => p.id);
+  it("closes the loop with New Agent and Network return instead of a hidden reset", () => {
+    const ids = phasesFor(false).map((p) => p.id);
     expect(ids[0]).toBe("enter");
-    expect(ids.at(-1)).toBe("reset");
-    expect(ids).toContain("selectFile");
-    expect(ids).toContain("selectNode");
-    expect(ids).toContain("switchTemporal");
-    expect(ids).toContain("typeQuestion");
-    expect(ids).toContain("send");
+    expect(ids.at(-1)).toBe("loopDwell");
+    expect(ids).not.toContain("reset");
+    expect(ids).toContain("runActions");
+    expect(ids).toContain("streamResponse");
+    expect(ids).toContain("clickNewAgent");
+    expect(ids).toContain("switchNetwork");
+    expect(ids).toContain("cursorHome");
+    expect(ids.indexOf("runActions")).toBeLessThan(ids.indexOf("streamResponse"));
+    expect(ids.indexOf("streamResponse")).toBeLessThan(ids.indexOf("clickNewAgent"));
+    expect(ids.indexOf("clickNewAgent")).toBeLessThan(ids.indexOf("switchNetwork"));
   });
 
-  it("omits the extra network hop on compact screens", () => {
+  it("omits the extra network hop on compact screens but still closes the loop", () => {
     const compact = phasesFor(true).map((p) => p.id);
     expect(compact).not.toContain("moveToNode");
     expect(compact).not.toContain("selectNode");
-    expect(compact).toContain("selectFile");
-    expect(compact).toContain("switchTemporal");
-    expect(compact).toContain("typeQuestion");
+    expect(compact).toContain("clickNewAgent");
+    expect(compact).toContain("switchNetwork");
+    expect(compact).toContain("cursorHome");
   });
 
   it("sizes typing from the prompt length, not a fixed pause", () => {
@@ -75,37 +107,22 @@ describe("hero tour phases", () => {
     expect(easeCursor(0.75)).toBeGreaterThan(0.75);
   });
 
-  it("keeps a full loop in a calm 12–16s band for the canonical prompts", () => {
-    for (const len of [22, 23, 35]) {
-      const ms = loopDuration(false, len);
-      expect(ms).toBeGreaterThanOrEqual(12_000);
-      expect(ms).toBeLessThanOrEqual(16_000);
-    }
+  it("keeps a full loop moving without becoming a long movie", () => {
+    const ms = loopDuration(false, sample);
+    expect(ms).toBeGreaterThanOrEqual(14_000);
+    expect(ms).toBeLessThan(28_000);
   });
 });
 
 describe("hero tour clock", () => {
   it("applies file selection then network selection, and pause freezes advancement", () => {
-    const visuals: TourVisualState[] = [];
-    const clock = new HeroTourClock({
-      onVisual: (s) => visuals.push({ ...s }),
-      onCursor: () => {},
-      measure: (target) => {
-        if (target === HERO_TARGETS.fileGraphService) return { x: 40, y: 80 };
-        if (target === HERO_TARGETS.networkNodeParser) return { x: 180, y: 140 };
-        return { x: 20, y: 30 };
-      },
-      promptLength: () => 12,
-      compact: () => false,
-    });
-
+    const { clock, visuals } = makeClock();
     clock.start(0);
     expect(visuals.at(-1)?.cursorVisible).toBe(true);
 
-    // enter dwell (480) + moveToFile (560+80) → selectFile applies on phase enter
     let t = 0;
     const step = 16;
-    while (t < 480 + 560 + 80 + CLICK_MS + 80 && visuals.every((v) => v.selectedFile !== "graph")) {
+    while (t < 360 + 520 + 60 + CLICK_MS + 80 && visuals.every((v) => v.selectedFile !== "graph")) {
       t += step;
       clock.tick(t);
     }
@@ -123,58 +140,126 @@ describe("hero tour clock", () => {
 
   it("types the prompt character by character", () => {
     let typed = 0;
-    const clock = new HeroTourClock({
-      onVisual: (s) => {
-        typed = s.typedChars;
-      },
-      onCursor: () => {},
-      measure: () => ({ x: 10, y: 10 }),
-      promptLength: () => 8,
-      compact: () => true,
-    });
+    const { clock } = makeClock({ compact: true, prompt: 8 });
     clock.start(0);
-    // Fast-forward into typeQuestion by ticking past earlier compact phases.
-    let now = 0;
-    for (let i = 0; i < 14000; i += 30) {
-      now = i;
-      clock.tick(now);
+    for (let i = 0; i < 16000; i += 30) {
+      clock.tick(i);
+      typed = clock.snapshot.typedChars;
       if (typed > 0 && typed < 8) break;
     }
     expect(typed).toBeGreaterThan(0);
     expect(typed).toBeLessThan(8);
   });
 
-  it("resets and begins another loop", () => {
-    let sawReset = false;
-    let reentered = false;
-    let selected = false;
-    const clock = new HeroTourClock({
-      onVisual: (s) => {
-        if (s.selectedFile === "graph") selected = true;
-        if (selected && !s.cursorVisible && !s.selectedFile) sawReset = true;
-        if (sawReset && s.cursorVisible) reentered = true;
-      },
-      onCursor: () => {},
-      measure: () => ({ x: 10, y: 10 }),
-      promptLength: () => 4,
-      compact: () => true,
-    });
+  it("runs actions before any response characters, then streams", () => {
+    const { clock, visuals } = makeClock({ compact: true, prompt: 4, response: 12 });
     clock.start(0);
-    for (let t = 0; t <= 20000; t += 50) clock.tick(t);
-    expect(sawReset).toBe(true);
-    expect(reentered).toBe(true);
+    let sawAction = false;
+    let streamedDuringAction = false;
+    let streamedAfter = false;
+    for (let t = 0; t <= 22000; t += 20) {
+      clock.tick(t);
+      const s = clock.snapshot;
+      if (s.actionCompleted > 0 || s.actionIndex >= 0) sawAction = true;
+      if (
+        (s.actionIndex >= 0 || (s.actionCompleted > 0 && !s.actionsCollapsed)) &&
+        s.streamedChars > 0
+      ) {
+        streamedDuringAction = true;
+      }
+      if (s.actionsCollapsed && s.streamedChars > 0 && s.streamedChars < 12) streamedAfter = true;
+    }
+    expect(sawAction).toBe(true);
+    expect(streamedDuringAction).toBe(false);
+    expect(streamedAfter).toBe(true);
+    expect(visuals.some((v) => v.sent)).toBe(true);
+  });
+
+  it("clears the agent on New Agent, then returns to Network matching loop start", () => {
+    const { clock } = makeClock({ compact: true, prompt: 4, response: 6 });
+    clock.start(0);
+    let sawTemporal = false;
+    let sawNewAgent = false;
+    let sawNetworkReturn = false;
+    let startAfterReturn: TourVisualState | null = null;
+    for (let t = 0; t <= 28000; t += 25) {
+      clock.tick(t);
+      const s = clock.snapshot;
+      if (s.mode === "temporal") sawTemporal = true;
+      if (s.sent && s.showResponse) {
+        /* hold */
+      }
+      if (sawTemporal && !s.sent && s.actionCompleted === 0 && s.mode === "temporal")
+        sawNewAgent = true;
+      if (sawNewAgent && s.mode === "network" && isLoopStartState(s)) {
+        sawNetworkReturn = true;
+        startAfterReturn = s;
+        break;
+      }
+    }
+    expect(sawTemporal).toBe(true);
+    expect(sawNewAgent).toBe(true);
+    expect(sawNetworkReturn).toBe(true);
+    expect(startAfterReturn && isLoopStartState(startAfterReturn)).toBe(true);
+  });
+
+  it("keeps the completed conversation through the New Agent click, then clears", () => {
+    const { clock } = makeClock({ compact: true, prompt: 4, response: 6 });
+    clock.start(0);
+    let sawClickWithTranscript = false;
+    let clearedAfterClick = false;
+    for (let t = 0; t <= 28000; t += 20) {
+      clock.tick(t);
+      const s = clock.snapshot;
+      if (s.agentResetting && s.sent && s.showResponse) sawClickWithTranscript = true;
+      if (sawClickWithTranscript && !s.sent && s.mode === "temporal" && !s.agentResetting) {
+        clearedAfterClick = true;
+        break;
+      }
+    }
+    expect(sawClickWithTranscript).toBe(true);
+    expect(clearedAfterClick).toBe(true);
+  });
+
+  it("does not accumulate agent or graph state across five loops", () => {
+    const { clock } = makeClock({ compact: true, prompt: 4, response: 6 });
+    clock.start(0);
+    let loops = 0;
+    let prevHome = false;
+    const starts: TourVisualState[] = [];
+    for (let t = 0; t <= 90000; t += 40) {
+      clock.tick(t);
+      const s = clock.snapshot;
+      const home = isLoopStartState(s) && s.cursorVisible;
+      if (home && !prevHome) {
+        loops += 1;
+        starts.push({ ...s });
+      }
+      prevHome = home;
+      if (loops >= 6) break;
+    }
+    expect(loops).toBeGreaterThanOrEqual(5);
+    for (const start of starts) {
+      expect(isLoopStartState(start)).toBe(true);
+      expect(start.streamedChars).toBe(0);
+      expect(start.actionCompleted).toBe(0);
+      expect(start.mode).toBe("network");
+    }
   });
 });
 
 describe("reduced motion presentation", () => {
   it("shows the same information without a roaming cursor", () => {
-    const state = reducedMotionState(23);
+    const state = reducedMotionState(23, 40, 3);
     expect(state.cursorVisible).toBe(false);
     expect(state.selectedFile).toBe("graph");
     expect(state.selectedNode).toBe("graph");
     expect(state.mode).toBe("network");
     expect(state.typedChars).toBe(23);
     expect(state.showResponse).toBe(true);
+    expect(state.actionsCollapsed).toBe(true);
+    expect(state.actionCompleted).toBe(3);
     expect(INITIAL_TOUR_STATE.mode).toBe("network");
+    expect(isLoopStartState(INITIAL_TOUR_STATE)).toBe(true);
   });
 });

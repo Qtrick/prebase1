@@ -28,8 +28,8 @@ const LONG_ACTION_LABEL = 60;
 
 /** NN/G auto-forwarding reference: ~3 words/sec to read and process. */
 export const READING_WORDS_PER_SECOND = 3;
-export const RESPONSE_HOLD_MIN_MS = 5000;
-export const RESPONSE_HOLD_MAX_MS = 7500;
+export const RESPONSE_HOLD_MIN_MS = 4500;
+export const RESPONSE_HOLD_MAX_MS = 5500;
 export const COMPACT_HOLD_EXTRA_MS = 400;
 
 export type AgentRunPhase = "idle" | "acting" | "collapsed" | "streaming" | "complete";
